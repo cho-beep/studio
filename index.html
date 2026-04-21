@@ -1224,19 +1224,41 @@ function ms_onDrop(e) {
   document.getElementById('ms_uploadZone').classList.remove('has-file');
   if (e.dataTransfer.files[0]) ms_handleFile(e.dataTransfer.files[0]);
 }
-function ms_handleFile(file) {
+async function ms_handleFile(file) {
   document.getElementById('ms_uploadZone').classList.add('has-file');
   const badge = document.getElementById('ms_fileBadge');
   badge.style.display = 'inline-block';
-  badge.textContent = '📎 ' + file.name;
+  badge.textContent = '📎 ' + file.name + ' 읽는 중...';
   document.getElementById('ms_rangeBox').style.display = 'block';
   const ext = file.name.split('.').pop().toLowerCase();
-  if (ext === 'txt') {
-    const r = new FileReader();
-    r.onload = e => { ms_fileText = e.target.result; };
-    r.readAsText(file, 'UTF-8');
-  } else {
-    ms_fileText = '[FILE:' + file.name + ']';
+  try {
+    if (ext === 'txt') {
+      const r = new FileReader();
+      r.onload = e => {
+        ms_fileText = e.target.result;
+        badge.textContent = '📎 ' + file.name + ' (' + ms_fileText.length.toLocaleString() + '자)';
+      };
+      r.readAsText(file, 'UTF-8');
+    } else if (ext === 'docx') {
+      const buf = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer: buf });
+      ms_fileText = result.value;
+      badge.textContent = '📎 ' + file.name + ' (' + ms_fileText.length.toLocaleString() + '자)';
+    } else if (ext === 'pdf') {
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+      let txt = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        txt += content.items.map(item => item.str).join(' ') + '\n';
+      }
+      ms_fileText = txt.trim();
+      badge.textContent = '📎 ' + file.name + ' (' + ms_fileText.length.toLocaleString() + '자)';
+    }
+  } catch (err) {
+    badge.textContent = '📎 ' + file.name + ' ⚠️ 읽기 실패: ' + err.message;
+    ms_fileText = '';
   }
 }
 async function ms_startAnalysis() {
@@ -1912,6 +1934,7 @@ function gyo_switchTab(tab) {
 // ── File Upload (mammoth.js) ────────────────────────────────────────
 function setupDragDrop() {
   const zone = document.getElementById('dropZone');
+  if (!zone) return;
   zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
   zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
   zone.addEventListener('drop', e => {
