@@ -1,0 +1,2616 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE BOOKMAN Studio — 1본부 편집 에이전트</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --lavender: #7c6fa0;
+  --lavender-light: #a89cc8;
+  --lavender-pale: #e8e4f0;
+  --lavender-bg: #f4f1f9;
+  --cream: #faf8f4;
+  --cream-dark: #f0ece2;
+  --border: #ddd8ea;
+  --border-light: #ece8f5;
+  --text: #2a2535;
+  --text-muted: #6b647a;
+  --text-hint: #b0a8c0;
+  --surface: #ffffff;
+  --accent: #7c6fa0;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --danger: #c0392b;
+}
+body { font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif; background: var(--lavender-bg); color: var(--text); min-height: 100vh; }
+
+/* ── 헤더 ── */
+.app-header {
+  background: linear-gradient(135deg, #5c4f80 0%, #7c6fa0 50%, #9b8fc0 100%);
+  padding: 0 32px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(92,79,128,0.3);
+}
+.app-logo { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.1em; }
+.app-logo span { opacity: 0.7; font-weight: 300; margin-left: 10px; font-size: 12px; }
+
+/* ── 상단 탭 메뉴 ── */
+.tab-nav {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  padding: 0 24px;
+  overflow-x: auto;
+  box-shadow: 0 1px 4px rgba(92,79,128,0.08);
+}
+.tab-nav::-webkit-scrollbar { height: 0; }
+.tab-btn {
+  padding: 14px 20px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.tab-btn:hover { color: var(--lavender); }
+.tab-btn.active {
+  color: var(--lavender);
+  border-bottom-color: var(--lavender);
+  font-weight: 600;
+}
+.tab-btn.coming {
+  color: var(--text-hint);
+  cursor: default;
+}
+.tab-btn.coming::after { content: ' (준비중)'; font-size: 10px; }
+
+/* ── 패널 ── */
+.panel { display: none; }
+.panel.active { display: block; }
+.main { max-width: 860px; margin: 0 auto; padding: 32px 20px 80px; }
+.page-title { font-size: 20px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.page-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.7; }
+
+/* ── 카드 ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 14px;
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+/* ── 분야/장르 버튼 ── */
+.genre-wrap, .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.genre-btn, .chip {
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--lavender-bg);
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.genre-btn:hover, .chip:hover { border-color: var(--lavender); color: var(--lavender); }
+.genre-btn.active, .chip.on {
+  background: var(--lavender);
+  color: #fff;
+  border-color: var(--lavender);
+}
+
+/* ── 업로드 ── */
+.upload-zone {
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 22px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.upload-zone:hover, .upload-zone.has-file { border-color: var(--lavender); background: var(--lavender-pale); }
+.upload-icon { font-size: 24px; margin-bottom: 8px; }
+.upload-label { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+.upload-hint { font-size: 12px; color: var(--text-hint); }
+.file-badge { display: none; margin-top: 8px; font-size: 12px; color: var(--text-muted); padding: 5px 12px; background: var(--lavender-pale); border-radius: 20px; }
+
+/* ── range box ── */
+.range-box { display: none; margin-top: 12px; padding: 12px 16px; background: var(--lavender-bg); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.range-box-label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; }
+.range-opts { display: flex; gap: 24px; }
+.range-opt { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--text-muted); cursor: pointer; }
+.range-opt input { accent-color: var(--lavender); cursor: pointer; }
+
+/* ── divider ── */
+.or-divider { display: flex; align-items: center; gap: 10px; margin: 14px 0; }
+.or-line { flex: 1; height: 1px; background: var(--border); }
+.or-text { font-size: 12px; color: var(--text-hint); }
+
+/* ── 입력 ── */
+input[type=text], input[type=email], input[type=password], input[type=date], select {
+  width: 100%; padding: 10px 13px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 13px; color: var(--text);
+  background: var(--surface); font-family: inherit; outline: none; transition: border-color 0.15s;
+}
+input:focus, select:focus { border-color: var(--lavender); }
+input::placeholder { color: var(--text-hint); }
+textarea {
+  width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 11px 13px; font-size: 13px; color: var(--text); background: var(--surface);
+  resize: vertical; min-height: 100px; font-family: inherit; line-height: 1.7; outline: none; transition: border-color 0.15s;
+}
+textarea:focus { border-color: var(--lavender); }
+textarea::placeholder { color: var(--text-hint); }
+
+/* ── 체크박스/항목 ── */
+.check-list { display: flex; flex-direction: column; gap: 2px; }
+.check-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.12s; }
+.check-item:hover { background: var(--lavender-bg); }
+.check-item input { width: 15px; height: 15px; accent-color: var(--lavender); cursor: pointer; flex-shrink: 0; }
+.check-label { font-size: 14px; color: var(--text); }
+
+/* ── item box (카피탭) ── */
+.item-box { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 10px; }
+.item-box:last-child { margin-bottom: 0; }
+.item-hdr { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--lavender-bg); cursor: pointer; user-select: none; }
+.item-hdr input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--lavender); cursor: pointer; flex-shrink: 0; }
+.item-label { font-size: 14px; font-weight: 500; color: var(--text); }
+.item-desc { font-size: 11px; color: var(--text-hint); margin-left: auto; }
+.item-body { padding: 14px; border-top: 1px solid var(--border); background: var(--surface); }
+.tone-label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 0.05em; }
+.tone-wrap { display: flex; flex-wrap: wrap; gap: 7px; }
+.tone-btn { padding: 5px 13px; border-radius: 20px; border: 1px solid var(--border); background: var(--lavender-bg); font-size: 12px; color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.tone-btn.active { background: var(--lavender); color: #fff; border-color: var(--lavender); }
+.sub-items { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+.sub-item { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.12s; }
+.sub-item:hover { background: var(--lavender-bg); }
+.sub-item input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--lavender); cursor: pointer; }
+.sub-label { font-size: 13px; color: var(--text); }
+.sub-count { font-size: 11px; color: var(--text-hint); margin-left: auto; }
+
+/* ── 경고 ── */
+.warn-msg { display: none; margin-top: 10px; padding: 9px 13px; background: #fef0ef; border-radius: var(--radius-sm); font-size: 12px; color: var(--danger); }
+
+/* ── 버튼 ── */
+.run-btn, .analyze-btn, .generate-btn {
+  width: 100%; padding: 14px; background: var(--lavender); color: #fff; border: none;
+  border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: opacity 0.15s; font-family: inherit; margin-top: 6px;
+}
+.run-btn:hover, .analyze-btn:hover, .generate-btn:hover { opacity: 0.88; }
+.run-btn:disabled, .analyze-btn:disabled, .generate-btn:disabled { background: #ccc; cursor: not-allowed; opacity: 1; }
+.btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-muted); cursor: pointer; font-family: inherit; font-size: 13px; transition: all 0.15s; }
+.btn:hover { background: var(--lavender-bg); }
+.btn-primary { background: var(--lavender); color: #fff; border-color: var(--lavender); }
+.btn-primary:hover { opacity: 0.88; }
+.btn-pink { background: #e83e8c; color: #fff; border-color: #e83e8c; }
+.btn-pink:hover { background: #c2185b; }
+.btn-outline { background: #fff; color: var(--lavender); border: 1px solid var(--lavender); }
+.btn-outline:hover { background: var(--lavender-pale); }
+.btn-gray { background: #e9ecef; color: var(--text); }
+.btn-danger { background: #dc3545; color: #fff; font-size: 12px; padding: 4px 10px; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-lg { padding: 14px 32px; font-size: 16px; }
+
+/* ── 로딩 ── */
+.loading { display: none; text-align: center; padding: 40px 0; }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--lavender); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-msg { font-size: 13px; color: var(--text-muted); }
+
+/* ── 결과 탭 ── */
+.result-wrap { display: none; margin-top: 24px; }
+.result-tabs { display: flex; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.rtab { padding: 10px 16px; font-size: 13px; color: var(--text-muted); cursor: pointer; border: none; border-bottom: 2px solid transparent; background: none; font-family: inherit; white-space: nowrap; transition: all 0.15s; }
+.rtab:hover { color: var(--lavender); }
+.rtab.active { color: var(--lavender); border-bottom-color: var(--lavender); font-weight: 600; }
+.rpanel { display: none; }
+.rpanel.active { display: block; }
+.result-card { background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); padding: 22px; min-height: 200px; }
+.result-content { font-size: 14px; color: var(--text); line-height: 1.9; white-space: pre-wrap; }
+.section-head { font-size: 11px; font-weight: 700; color: var(--lavender); letter-spacing: 0.06em; text-transform: uppercase; margin: 20px 0 8px; display: block; }
+.section-head:first-child { margin-top: 0; }
+.action-bar { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+.act-btn { padding: 8px 16px; font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: all 0.15s; font-family: inherit; }
+.act-btn:hover { background: var(--lavender-bg); color: var(--lavender); }
+.act-btn.dark { background: var(--lavender); color: #fff; border-color: var(--lavender); }
+.act-btn.dark:hover { opacity: 0.85; }
+
+/* ── 카피 결과 ── */
+.rsec { margin-bottom: 20px; }
+.rsec-title { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rcol { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.rcol-title { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.ritem { font-size: 13px; color: var(--text); padding: 7px 0; border-bottom: 1px solid var(--border-light); line-height: 1.6; }
+.ritem:last-child { border-bottom: none; }
+.rnum { font-size: 11px; color: var(--text-hint); margin-right: 5px; }
+.copy-col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.csec { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.csec:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.csec-type { font-size: 11px; font-weight: 600; color: var(--lavender); letter-spacing: 0.05em; margin-bottom: 10px; }
+.citem { padding: 12px 14px; background: var(--lavender-bg); border-radius: var(--radius-sm); margin-bottom: 8px; border: 1px solid var(--border); }
+.citem:last-child { margin-bottom: 0; }
+.cn { font-size: 11px; color: var(--text-hint); margin-bottom: 5px; }
+.띠지-head { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.5; margin-bottom: 4px; }
+.띠지-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+.back-head { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.5; margin-bottom: 4px; }
+.back-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
+.back-body { font-size: 12px; color: var(--text-muted); line-height: 1.85; }
+.banner-text { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.5; }
+
+/* ── 보도자료 탭 전용 ── */
+.form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.form-group { flex: 1; min-width: 120px; }
+.form-group.small { flex: 0 0 100px; }
+.form-group.medium { flex: 0 0 160px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; }
+.hint { font-size: 12px; color: var(--text-hint); margin-top: 3px; }
+.contact-row { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px; padding: 12px; background: var(--lavender-bg); border-radius: var(--radius-sm); }
+.contact-row .form-group { min-width: 0; }
+.contact-row .remove-btn { flex-shrink: 0; margin-bottom: 2px; }
+.dropzone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--lavender-bg); }
+.dropzone:hover, .dropzone.dragover { border-color: var(--lavender); background: var(--lavender-pale); }
+.dropzone-icon { font-size: 32px; margin-bottom: 8px; }
+.dropzone-text { font-size: 14px; color: var(--text-muted); }
+.file-list { margin-top: 12px; }
+.file-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--lavender-bg); border-radius: var(--radius-sm); margin-bottom: 6px; font-size: 13px; }
+.file-item .file-info { display: flex; align-items: center; gap: 8px; }
+.file-item .file-size { color: var(--text-hint); }
+.cover-preview { width: 100px; height: 140px; border: 1px dashed var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; background: var(--lavender-bg); flex-shrink: 0; }
+.cover-preview img { width: 100%; height: 100%; object-fit: cover; }
+.cover-preview .placeholder { font-size: 11px; color: var(--text-hint); text-align: center; padding: 8px; }
+.excerpt-row { display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start; }
+.excerpt-row textarea { flex: 1; min-height: 70px; }
+.excerpt-row .page-input { width: 100px; flex-shrink: 0; }
+.excerpt-num { width: 26px; height: 26px; background: var(--lavender-pale); color: var(--lavender); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 6px; }
+.toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.toggle-switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+.toggle-switch input { display: none; }
+.toggle-slider { position: absolute; inset: 0; background: #ccc; border-radius: 22px; cursor: pointer; transition: 0.3s; }
+.toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
+.toggle-switch input:checked + .toggle-slider { background: var(--lavender); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+.checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 14px; }
+.checkbox-row input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--lavender); }
+.num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--lavender); color: #fff; border-radius: 50%; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-right: 4px; }
+.pr-action-bar { position: sticky; bottom: 0; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -4px 12px rgba(92,79,128,0.1); z-index: 100; margin-top: 20px; }
+.pr-action-bar .left-btns { display: flex; gap: 8px; }
+.sub-label { font-size: 13px; font-weight: 700; color: var(--lavender); margin-bottom: 6px; margin-top: 14px; }
+.sub-label:first-child { margin-top: 0; }
+#ai-results { display: none; }
+#ai-results.show { display: block; }
+
+/* ── 도서기획 탭 전용 ── */
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+.field-label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+.output-wrap { margin-top: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.output-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--lavender-bg); border-bottom: 1px solid var(--border); }
+.output-label { font-size: 12px; font-weight: 600; color: var(--lavender); letter-spacing: 0.05em; }
+.output-tabs { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.otab { padding: 5px 12px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.otab:hover { border-color: var(--lavender); color: var(--lavender); }
+.otab.on { background: var(--lavender); border-color: var(--lavender); color: #fff; font-weight: 500; }
+.output-box { position: relative; padding: 16px; min-height: 120px; }
+.copy-btn { position: absolute; top: 10px; right: 10px; padding: 4px 10px; font-size: 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-muted); cursor: pointer; font-family: inherit; }
+.copy-btn:hover { background: var(--lavender-pale); }
+.dir-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.dir-btn { padding: 8px 16px; border: 1px solid var(--lavender); border-radius: var(--radius-sm); background: var(--surface); color: var(--lavender); cursor: pointer; font-size: 13px; font-family: inherit; transition: all 0.15s; }
+.dir-btn:hover, .dir-btn.active { background: var(--lavender); color: #fff; }
+.chat-wrap { margin-top: 16px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.chat-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: var(--lavender-bg); border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 500; color: var(--lavender); }
+.chat-reset { font-size: 12px; color: var(--text-muted); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 10px; background: var(--surface); cursor: pointer; }
+.chat-messages { padding: 16px; min-height: 120px; max-height: 320px; overflow-y: auto; }
+.chat-msg { margin-bottom: 12px; }
+.chat-msg.user { text-align: right; }
+.chat-msg .bubble { display: inline-block; padding: 8px 14px; border-radius: var(--radius); font-size: 13px; line-height: 1.6; max-width: 80%; }
+.chat-msg.user .bubble { background: var(--lavender); color: #fff; }
+.chat-msg.ai .bubble { background: var(--lavender-bg); color: var(--text); }
+.chat-input-row { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--lavender-bg); }
+.chat-input-row textarea { flex: 1; min-height: 44px; max-height: 120px; }
+.chat-send-btn { padding: 0 16px; background: var(--lavender); color: #fff; border: none; border-radius: var(--radius-sm); cursor: pointer; font-family: inherit; font-size: 13px; flex-shrink: 0; }
+
+/* ── 편집일정 탭 전용 ── */
+.book-tab-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.book-tab { padding: 6px 14px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; color: var(--text-muted); cursor: pointer; font-family: inherit; }
+.book-tab.active { color: var(--lavender); background: var(--lavender-pale); font-weight: 700; border-color: var(--lavender); }
+.big-cal-tabs { display: flex; gap: 3px; flex-wrap: wrap; margin-bottom: 12px; }
+.big-cal-tab { padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-muted); cursor: pointer; font-family: inherit; }
+.big-cal-tab.active { background: var(--lavender); color: #fff; border-color: var(--lavender); font-weight: 700; }
+.cal-edit-panel { padding: 16px; background: var(--lavender-bg); border-radius: var(--radius); margin-bottom: 14px; }
+
+/* ── 편집 일정 전용 CSS ── */
+.book-sel-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.book-sel-tab { display: flex; align-items: center; gap: 6px; padding: 6px 13px; border-radius: 20px; font-size: 12px; font-family: 'Noto Sans KR', sans-serif; font-weight: 300; cursor: pointer; border: 1.5px solid var(--border); background: transparent; color: var(--text-muted); transition: all .15s; max-width: 200px; }
+.book-sel-tab:hover:not(.active) { background: var(--lavender-bg); color: var(--text); }
+.book-sel-tab.active { color: #fff; font-weight: 400; }
+.book-sel-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.book-sel-tab.active .book-sel-dot { background: rgba(255,255,255,.6) !important; }
+.book-sel-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.book-card { background: var(--surface); border-radius: 12px; margin-bottom: 16px; overflow: hidden; border: 1px solid var(--border); }
+.book-card-header { display: flex; align-items: center; padding: 14px 16px; gap: 12px; }
+.book-color-bar { width: 4px; height: 44px; border-radius: 3px; flex-shrink: 0; }
+.book-card-meta { flex: 1; min-width: 0; }
+.book-card-title { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.book-card-author { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.book-card-pubdate { font-size: 12px; color: var(--lavender); font-weight: 600; flex-shrink: 0; }
+.book-card-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.book-tab-bar { display: flex; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.book-tab { flex: 1; padding: 8px; font-size: 12px; font-family: 'Noto Sans KR', sans-serif; font-weight: 500; color: var(--text-muted); background: transparent; border: none; cursor: pointer; transition: background .15s, color .15s; }
+.book-tab.active { color: var(--lavender); background: var(--lavender-pale); font-weight: 700; }
+.book-card-body { padding: 14px 16px; }
+.tl-wrap { position: relative; padding-left: 4px; }
+.tl-line { position: absolute; left: 9px; top: 6px; bottom: 6px; width: 2px; background: var(--border); }
+.tl-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; position: relative; }
+.tl-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; margin-top: 8px; border: 2px solid #fff; box-shadow: 0 0 0 2px var(--border); background: var(--lavender-light); position: relative; z-index: 1; }
+.tl-dot.pub { background: var(--lavender); box-shadow: 0 0 0 2px var(--lavender); }
+.tl-dot.past { background: #bbb; box-shadow: 0 0 0 2px #bbb; }
+.tl-dot.today-dot { background: #2e9e4f; box-shadow: 0 0 0 3px rgba(46,158,79,.3); }
+.tl-info { flex: 1; min-width: 0; }
+.tl-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.tl-date { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.tl-d { font-size: 11px; padding: 2px 7px; border-radius: 10px; background: var(--lavender-bg); color: var(--text-muted); flex-shrink: 0; align-self: center; white-space: nowrap; }
+.big-cal-wrap { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.big-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); border-left: 1px solid var(--border); border-top: 1px solid var(--border); }
+.big-cal-dow { text-align: center; padding: 7px 4px; font-size: 11px; font-weight: 700; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--lavender-bg); color: var(--text-muted); }
+.big-cal-dow.sun { color: #e74c3c; } .big-cal-dow.sat { color: #2980b9; }
+.big-cal-cell { min-height: 72px; padding: 4px 5px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); vertical-align: top; overflow: hidden; cursor: pointer; transition: background .12s; }
+.big-cal-cell:hover { filter: brightness(.96); }
+.big-cal-cell.selected { outline: 2px solid var(--lavender); outline-offset: -2px; }
+.big-cal-cell.other-month { background: var(--lavender-bg); cursor: default; }
+.big-cal-cell.has-events { background: rgba(124,111,160,.08); }
+.big-cal-cell.today-bg { background: rgba(46,158,79,.07); }
+.big-cal-day-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 2px; flex-shrink: 0; }
+.big-cal-day-num.today-num { background: #2e9e4f; color: #fff; font-weight: 700; }
+.big-cal-day-num.dim { color: #ccc; } .big-cal-day-num.sun-num { color: #e74c3c; } .big-cal-day-num.sat-num { color: #2980b9; }
+.big-cal-ev { font-size: 10px; line-height: 1.35; color: var(--text); word-break: keep-all; margin-bottom: 1px; }
+.big-cal-ev.core { color: #c0392b; font-weight: 700; } .big-cal-ev.pub { color: var(--lavender); font-weight: 700; }
+.big-cal-footer { display: flex; align-items: center; border-top: 1px solid var(--border); padding: 6px 8px; gap: 4px; background: var(--lavender-bg); }
+.big-cal-yr-btn { background: none; border: none; cursor: pointer; font-size: 14px; color: var(--text-muted); padding: 3px 6px; border-radius: 5px; line-height: 1; flex-shrink: 0; transition: background .15s; }
+.big-cal-yr-btn:hover { background: var(--lavender-pale); color: var(--text); }
+.big-cal-yr-label { font-size: 11px; font-weight: 700; color: var(--text-muted); flex-shrink: 0; padding: 0 2px; }
+.big-cal-tabs { display: flex; gap: 3px; flex: 1; flex-wrap: wrap; }
+.big-cal-tab { padding: 3px 9px; border-radius: 20px; font-size: 11px; font-family: 'Noto Sans KR', sans-serif; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-muted); transition: all .15s; white-space: nowrap; }
+.big-cal-tab.active { background: var(--lavender); color: #fff; border-color: var(--lavender); font-weight: 700; }
+.big-cal-tab:hover:not(.active) { background: var(--lavender-bg); }
+.cal-edit-panel { border-top: 2px solid var(--lavender); padding: 14px 16px; background: var(--lavender-bg); }
+.cal-edit-title { font-size: 12px; font-weight: 700; color: var(--lavender); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.cal-ev-edit-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+.cal-ev-edit-row:last-of-type { border-bottom: none; }
+.cal-ev-name-inp { flex: 1; font-size: 13px; font-family: 'Noto Sans KR', sans-serif; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 5px 9px; outline: none; min-width: 0; }
+.cal-ev-name-inp:focus { border-color: var(--lavender); }
+.cal-ev-date-inp { font-size: 11px; font-family: 'Noto Sans KR', sans-serif; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 5px 7px; outline: none; width: 108px; flex-shrink: 0; }
+.cal-ev-date-inp:focus { border-color: var(--lavender); }
+.cal-ev-del-btn { background: none; border: none; cursor: pointer; font-size: 14px; color: var(--text-muted); padding: 4px 6px; border-radius: 4px; flex-shrink: 0; }
+.cal-ev-del-btn:hover { color: #e74c3c; background: rgba(231,76,60,.08); }
+.cal-ev-add-btn { margin-top: 10px; width: 100%; padding: 8px; font-size: 12px; font-family: 'Noto Sans KR', sans-serif; background: none; border: 1.5px dashed var(--border); border-radius: 8px; cursor: pointer; color: var(--text-muted); }
+.cal-ev-add-btn:hover { border-color: var(--lavender); color: var(--lavender); }
+.cal-edit-empty { font-size: 12px; color: var(--text-muted); padding: 6px 0 8px; }
+#dp-popup { position: fixed; z-index: 9999; background: #fff; border: 1px solid #e0e0e0; border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,.14); padding: 14px; width: 272px; font-family: 'Noto Sans KR', sans-serif; }
+.dp-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.dp-nav-btn { background: none; border: none; cursor: pointer; font-size: 18px; color: #888; padding: 2px 10px; border-radius: 6px; line-height: 1; }
+.dp-nav-btn:hover { background: #f0f0f0; }
+.dp-title { font-size: 13px; font-weight: 700; color: #222; }
+.dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.dp-dow { text-align: center; font-size: 11px; font-weight: 700; color: #888; padding: 3px 0 5px; }
+.dp-dow.sun { color: #e74c3c; } .dp-dow.sat { color: #2980b9; }
+.dp-day { text-align: center; font-size: 12px; padding: 5px 2px; border-radius: 6px; cursor: pointer; color: #333; }
+.dp-day:hover { background: var(--lavender-pale); }
+.dp-day.today { background: var(--lavender); color: #fff; font-weight: 700; }
+.dp-day.dim { color: #ccc; cursor: default; }
+.dp-day.sun { color: #e74c3c; } .dp-day.sat { color: #2980b9; }
+.input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.input-grid .full { grid-column: 1 / -1; }
+.view-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.view-tab { padding: 7px 16px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; font-family: 'Noto Sans KR', sans-serif; background: transparent; color: var(--text-muted); cursor: pointer; transition: all .15s; }
+.view-tab.active { background: var(--lavender); color: #fff; border-color: var(--lavender); font-weight: 700; }
+.view-tab:hover:not(.active) { background: var(--lavender-bg); }
+.dl-btn { padding: 7px 14px; border: 1px solid var(--lavender); border-radius: var(--radius-sm); background: var(--surface); color: var(--lavender); font-size: 13px; cursor: pointer; font-family: inherit; transition: all .15s; }
+.dl-btn:hover { background: var(--lavender); color: #fff; }
+.dl-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── 토스트 ── */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--lavender); color: #fff; padding: 10px 22px; border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<div class="app-header">
+  <div class="app-logo">THE BOOKMAN <span>1본부 편집 스튜디오</span></div>
+</div>
+
+<!-- ── 상단 탭 네비게이션 ── -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab(0)">원고 검토</button>
+  <button class="tab-btn" onclick="switchTab(1)">교정·교열</button>
+  <button class="tab-btn" onclick="switchTab(2)">카피 및 제목안 작성</button>
+  <button class="tab-btn" onclick="switchTab(3)">보도자료</button>
+  <button class="tab-btn" onclick="switchTab(4)">도서 기획</button>
+  <button class="tab-btn" onclick="switchTab(5)">편집 일정</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     패널 0: 원고 검토
+══════════════════════════════════════ -->
+<div class="panel active" id="panel-0">
+<div class="main">
+  <div class="page-title">원고 검토</div>
+  <div class="page-desc">원고 파일 또는 텍스트를 입력하면 AI가 분야별 베스트셀러 트렌드와 최신 웹 데이터를 바탕으로 분석합니다.<br>번역서(외국어 원고)는 원문 그대로 업로드하면 한국어로 분석됩니다.</div>
+
+  <div class="card">
+    <div class="card-title">분야 선택</div>
+    <div class="genre-wrap">
+      <button class="genre-btn" onclick="ms_selectGenre(this)">소설</button>
+      <button class="genre-btn" onclick="ms_selectGenre(this)">에세이</button>
+      <button class="genre-btn" onclick="ms_selectGenre(this)">인문·교양</button>
+      <button class="genre-btn" onclick="ms_selectGenre(this)">자기계발</button>
+      <button class="genre-btn" onclick="ms_selectGenre(this)">경제·경영</button>
+      <button class="genre-btn" onclick="ms_selectGenre(this)">번역서</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">원고 입력</div>
+    <div class="upload-zone" id="ms_uploadZone" onclick="document.getElementById('ms_fileInput').click()"
+      ondragover="event.preventDefault();this.classList.add('has-file')"
+      ondragleave="this.classList.remove('has-file')"
+      ondrop="ms_onDrop(event)">
+      <div class="upload-icon">📄</div>
+      <div class="upload-label">파일 선택 또는 드래그</div>
+      <div class="upload-hint">PDF · DOCX · TXT 지원</div>
+      <input type="file" id="ms_fileInput" accept=".pdf,.docx,.txt" style="display:none" onchange="ms_onFileSelect(this)">
+    </div>
+    <div class="file-badge" id="ms_fileBadge"></div>
+    <div class="range-box" id="ms_rangeBox">
+      <div class="range-box-label">분석 범위</div>
+      <div class="range-opts">
+        <label class="range-opt"><input type="radio" name="ms_range" value="full" checked> 전체 원고</label>
+        <label class="range-opt"><input type="radio" name="ms_range" value="30pct"> 앞부분 30%</label>
+      </div>
+    </div>
+    <div class="or-divider"><div class="or-line"></div><div class="or-text">또는 텍스트 직접 입력</div><div class="or-line"></div></div>
+    <textarea id="ms_manuscriptText" placeholder="원고 텍스트를 붙여넣으세요 (일부 발췌도 가능)"></textarea>
+  </div>
+
+  <div class="card">
+    <div class="card-title">분석 항목 선택 (복수 선택 가능)</div>
+    <div class="check-list">
+      <label class="check-item"><input type="checkbox" value="plot"><span class="check-label">줄거리 및 구성 분석</span></label>
+      <label class="check-item"><input type="checkbox" value="target"><span class="check-label">타깃 독자 분석</span></label>
+      <label class="check-item"><input type="checkbox" value="edit"><span class="check-label">편집 방향 제안</span></label>
+      <label class="check-item"><input type="checkbox" value="sales"><span class="check-label">핵심 세일즈 포인트</span></label>
+      <label class="check-item"><input type="checkbox" value="comp"><span class="check-label">경쟁도서 분석</span></label>
+    </div>
+    <div class="warn-msg" id="ms_warnMsg">⚠️ 항목을 하나 이상 선택해주세요.</div>
+  </div>
+
+  <button class="analyze-btn" id="ms_analyzeBtn" onclick="ms_startAnalysis()">원고 분석 시작 →</button>
+
+  <div class="loading" id="ms_loading">
+    <div class="spinner"></div>
+    <div class="loading-msg" id="ms_loadingMsg">원고를 분석하고 있습니다...</div>
+  </div>
+
+  <div class="result-wrap" id="ms_resultWrap">
+    <div class="result-tabs" id="ms_resultTabs"></div>
+    <div id="ms_resultPanels"></div>
+  </div>
+</div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     패널 1: 교정·교열
+══════════════════════════════════════ -->
+<div class="panel" id="panel-1">
+<style>
+.gyo-wrap { max-width: 1100px; margin: 0 auto; padding: 28px 20px 80px; }
+.gyo-header { text-align: center; margin-bottom: 24px; }
+.gyo-header h2 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.gyo-header p { font-size: 13px; color: var(--text-muted); }
+.gyo-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 14px; }
+.gyo-sec-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 14px; }
+.gyo-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.gyo-tab { padding: 9px 18px; font-size: 13px; color: var(--text-muted); cursor: pointer; border: none; border-bottom: 2px solid transparent; background: none; font-family: inherit; transition: all 0.15s; }
+.gyo-tab:hover { color: var(--lavender); }
+.gyo-tab.active { color: var(--lavender); border-bottom-color: var(--lavender); font-weight: 600; }
+.gyo-tab-content { display: none; }
+.gyo-tab-content.active { display: block; }
+.gyo-drop { border: 1.5px dashed var(--border); border-radius: var(--radius-sm); padding: 28px 16px; text-align: center; cursor: pointer; transition: all 0.15s; color: var(--text-muted); font-size: 13px; }
+.gyo-drop:hover, .gyo-drop.drag-over { border-color: var(--lavender); background: var(--lavender-pale); }
+.gyo-fname { font-size: 12px; color: var(--lavender); margin-top: 8px; font-weight: 500; }
+.gyo-editor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.gyo-editor-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; cursor: pointer; transition: all 0.15s; background: var(--surface); }
+.gyo-editor-card:hover { border-color: var(--lavender); background: var(--lavender-bg); }
+.gyo-editor-card.selected { border-color: var(--lavender); background: var(--lavender-pale); }
+.gyo-editor-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.gyo-editor-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.gyo-editor-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.gyo-editor-cb { width: 15px; height: 15px; accent-color: var(--lavender); cursor: pointer; flex-shrink: 0; }
+.gyo-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; margin-right: 4px; }
+.gyo-badge-c { background: var(--lavender-pale); color: var(--lavender); }
+.gyo-badge-g { background: #edf7ee; color: #2a7a3d; }
+.gyo-badge-s { background: #e3f2fd; color: #1565c0; }
+.gyo-settings { background: var(--lavender-bg); border: 1px solid var(--lavender-pale); border-radius: var(--radius-sm); padding: 14px; margin-top: 10px; }
+.gyo-settings-title { font-size: 12px; font-weight: 600; color: var(--lavender); margin-bottom: 10px; }
+.gyo-radio-group { display: flex; flex-direction: column; gap: 8px; }
+.gyo-radio-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; background: var(--surface); transition: all 0.15s; }
+.gyo-radio-item:has(input:checked) { border-color: var(--lavender); background: var(--lavender-pale); }
+.gyo-radio-item input { accent-color: var(--lavender); margin-top: 2px; flex-shrink: 0; }
+.gyo-radio-label strong { font-size: 13px; color: var(--text); display: block; }
+.gyo-radio-label small { font-size: 11px; color: var(--text-muted); }
+.gyo-run-btn { width: 100%; padding: 14px; background: var(--lavender); color: #fff; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; margin-top: 6px; }
+.gyo-run-btn:hover { opacity: 0.88; }
+.gyo-run-btn:disabled { background: #ccc; cursor: not-allowed; opacity: 1; }
+.gyo-progress { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 14px; }
+.gyo-step { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 13px; color: var(--text-muted); border-bottom: 1px solid var(--border-light); }
+.gyo-step:last-child { border-bottom: none; }
+.gyo-step.running { color: var(--lavender); font-weight: 500; }
+.gyo-step.done { color: #2e9e4f; }
+.gyo-step.error { color: var(--danger); }
+.gyo-step-icon { font-size: 14px; flex-shrink: 0; }
+.gyo-spinner { width: 14px; height: 14px; border: 2px solid var(--lavender-pale); border-top-color: var(--lavender); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+.gyo-results { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
+.gyo-result-tabs { display: flex; border-bottom: 1px solid var(--border); }
+.gyo-result-tab { padding: 10px 18px; font-size: 13px; color: var(--text-muted); cursor: pointer; border: none; border-bottom: 2px solid transparent; background: none; font-family: inherit; transition: all 0.15s; }
+.gyo-result-tab:hover { color: var(--lavender); }
+.gyo-result-tab.active { color: var(--lavender); border-bottom-color: var(--lavender); font-weight: 600; }
+.gyo-result-pane { display: none; padding: 20px; }
+.gyo-result-pane.active { display: block; }
+.gyo-diff-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.gyo-diff-head { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
+.gyo-diff-body { font-size: 13px; line-height: 1.9; white-space: pre-wrap; color: var(--text); }
+.gyo-diff-body mark.del { background: #ffd7d7; color: #c0392b; text-decoration: line-through; border-radius: 2px; }
+.gyo-diff-body mark.ins { background: #d4edda; color: #1e7e34; border-radius: 2px; }
+.gyo-text-out { font-size: 13px; line-height: 1.9; white-space: pre-wrap; color: var(--text); }
+.gyo-actions { display: flex; gap: 8px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+.gyo-act-btn { padding: 8px 16px; font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.gyo-act-btn:hover { background: var(--lavender-bg); border-color: var(--lavender); color: var(--lavender); }
+.gyo-act-btn.dark { background: var(--lavender); color: #fff; border-color: var(--lavender); }
+.gyo-err { background: #fff8f8; border: 1px solid #ffb0b0; border-radius: var(--radius-sm); padding: 12px 14px; color: var(--danger); font-size: 13px; margin-bottom: 14px; }
+.gyo-empty { text-align: center; padding: 60px 20px; color: var(--text-hint); }
+@media(max-width:700px){ .gyo-editor-grid{grid-template-columns:1fr} .gyo-diff-cols{grid-template-columns:1fr} }
+</style>
+
+<div class="gyo-wrap">
+  <div class="gyo-header">
+    <h2>교정·교열</h2>
+    <p>AI 편집자가 출판 원고를 단계별로 교정교열합니다</p>
+  </div>
+
+  <!-- 원고 입력 -->
+  <div class="gyo-card">
+    <div class="gyo-sec-title">원고 입력</div>
+    <div class="gyo-tabs">
+      <button class="gyo-tab active" onclick="gyo_switchInputTab('upload')">파일 업로드</button>
+      <button class="gyo-tab" onclick="gyo_switchInputTab('text')">텍스트 직접 입력</button>
+    </div>
+    <div id="gyo_uploadTab" class="gyo-tab-content active">
+      <div class="gyo-drop" id="gyo_dropZone" onclick="document.getElementById('gyo_fileInput').click()"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="gyo_handleDrop(event)">
+        <div style="font-size:32px;margin-bottom:8px">📂</div>
+        <strong>클릭</strong>하거나 파일을 드래그하여 업로드<br>
+        <span style="font-size:12px;color:var(--text-hint)">PDF · DOCX 지원</span>
+      </div>
+      <input type="file" id="gyo_fileInput" accept=".docx,.pdf" style="display:none" onchange="gyo_handleFile(this.files[0])">
+      <div id="gyo_fname" class="gyo-fname" style="display:none"></div>
+    </div>
+    <div id="gyo_textTab" class="gyo-tab-content">
+      <textarea class="folio-input folio-textarea" id="gyo_manuscriptText" placeholder="원고를 여기에 붙여넣기 하세요..." style="min-height:160px"></textarea>
+      <div style="font-size:11px;color:var(--text-hint);margin-top:6px" id="gyo_charCount">0자</div>
+    </div>
+  </div>
+
+  <!-- 편집자 선택 -->
+  <div class="gyo-card">
+    <div class="gyo-sec-title">편집자 선택 (선택한 순서대로 순차 실행)</div>
+    <div class="gyo-editor-grid">
+      <div class="gyo-editor-card" id="gyo_card-editor1" onclick="gyo_toggleEditor('editor1')">
+        <div class="gyo-editor-head">
+          <div>
+            <div class="gyo-editor-name">편집자 1 · 팩트체크</div>
+            <div class="gyo-editor-desc">사실 관계 확인 및 오류 수정</div>
+          </div>
+          <input type="checkbox" class="gyo-editor-cb" id="gyo_editor1" onclick="event.stopPropagation()">
+        </div>
+        <div><span class="gyo-badge gyo-badge-c">Claude</span><span class="gyo-badge gyo-badge-s">Web Search</span></div>
+      </div>
+      <div class="gyo-editor-card" id="gyo_card-editor2" onclick="gyo_toggleEditor('editor2')">
+        <div class="gyo-editor-head">
+          <div>
+            <div class="gyo-editor-name">편집자 2 · 윤문</div>
+            <div class="gyo-editor-desc">문장 개선 및 가독성 향상</div>
+          </div>
+          <input type="checkbox" class="gyo-editor-cb" id="gyo_editor2" onclick="event.stopPropagation()">
+        </div>
+        <div><span class="gyo-badge gyo-badge-g">Gemini</span></div>
+      </div>
+      <div class="gyo-editor-card" id="gyo_card-editor3" onclick="gyo_toggleEditor('editor3')">
+        <div class="gyo-editor-head">
+          <div>
+            <div class="gyo-editor-name">편집자 3 · 교정교열</div>
+            <div class="gyo-editor-desc">맞춤법·띄어쓰기·문장부호 교정</div>
+          </div>
+          <input type="checkbox" class="gyo-editor-cb" id="gyo_editor3" onclick="event.stopPropagation()">
+        </div>
+        <div><span class="gyo-badge gyo-badge-c">Claude</span></div>
+      </div>
+      <div class="gyo-editor-card" id="gyo_card-yakul" onclick="gyo_toggleEditor('yakul')">
+        <div class="gyo-editor-head">
+          <div>
+            <div class="gyo-editor-name">약물기호 삽입</div>
+            <div class="gyo-editor-desc">조판용 약물기호 자동 삽입</div>
+          </div>
+          <input type="checkbox" class="gyo-editor-cb" id="gyo_yakul" onclick="event.stopPropagation()">
+        </div>
+        <div><span class="gyo-badge gyo-badge-c">Claude</span></div>
+      </div>
+    </div>
+
+    <div id="gyo_editor2Settings" style="display:none" class="gyo-settings">
+      <div class="gyo-settings-title">편집자 2 · 교정 강도 선택</div>
+      <div class="gyo-radio-group">
+        <label class="gyo-radio-item"><input type="radio" name="gyo_editor2Mode" value="simple" checked><span class="gyo-radio-label"><strong>단순 교정</strong><small>명백한 오류만 최소한으로 수정</small></span></label>
+        <label class="gyo-radio-item"><input type="radio" name="gyo_editor2Mode" value="proofread"><span class="gyo-radio-label"><strong>교열 포함</strong><small>맞춤법·어휘 교열, 문장 구조 보존</small></span></label>
+        <label class="gyo-radio-item"><input type="radio" name="gyo_editor2Mode" value="polish"><span class="gyo-radio-label"><strong>문장 다듬기</strong><small>흐름·어휘·구조 전면 개선</small></span></label>
+      </div>
+    </div>
+    <div id="gyo_editor3Settings" style="display:none" class="gyo-settings">
+      <div class="gyo-settings-title">편집자 3 · 보조동사 띄어쓰기</div>
+      <select id="gyo_auxVerbRule" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none" onchange="gyo_toggleCustomAux()">
+        <option value="standard">표준 (원칙: 붙여쓰기, 허용: 띄어쓰기)</option>
+        <option value="space">띄어쓰기 선호</option>
+        <option value="attach">붙여쓰기 선호</option>
+      </select>
+    </div>
+    <div id="gyo_yakulSettings" style="display:none" class="gyo-settings">
+      <div class="gyo-settings-title">약물기호 설정</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div><label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px">소제목</label><input type="text" id="gyo_hl" value="%" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:monospace;text-align:center;outline:none"></div>
+        <div><label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px">인용문</label><input type="text" id="gyo_qt" value="@" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:monospace;text-align:center;outline:none"></div>
+        <div><label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px">각주/미주/역주</label><input type="text" id="gyo_fn" value="⟨⟩" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:monospace;text-align:center;outline:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="gyo-run-btn" id="gyo_runBtn" onclick="gyo_run()">▶ 교정교열 시작</button>
+
+  <!-- 진행 상황 -->
+  <div class="gyo-progress" id="gyo_progress" style="display:none">
+    <div class="gyo-sec-title">진행 상황</div>
+    <div id="gyo_steps"></div>
+  </div>
+
+  <!-- 오류 -->
+  <div class="gyo-err" id="gyo_err" style="display:none"></div>
+
+  <!-- 결과 -->
+  <div class="gyo-results" id="gyo_results" style="display:none">
+    <div class="gyo-result-tabs">
+      <button class="gyo-result-tab active" onclick="gyo_resultTab('diff')">원본 ↔ 교열본</button>
+      <button class="gyo-result-tab" onclick="gyo_resultTab('clean')">최종 교열본</button>
+    </div>
+    <div id="gyo_pDiff" class="gyo-result-pane active">
+      <div class="gyo-diff-cols">
+        <div><div class="gyo-diff-head">원본 <span style="color:#c0392b;font-size:11px">삭제</span></div><div class="gyo-diff-body" id="gyo_dL"></div></div>
+        <div><div class="gyo-diff-head">교열본 <span style="color:#1e7e34;font-size:11px">추가</span></div><div class="gyo-diff-body" id="gyo_dR"></div></div>
+      </div>
+      <div class="gyo-actions">
+        <button class="gyo-act-btn" onclick="gyo_copy()">복사</button>
+        <button class="gyo-act-btn dark" onclick="gyo_download()">다운로드</button>
+      </div>
+    </div>
+    <div id="gyo_pClean" class="gyo-result-pane">
+      <div class="gyo-text-out" id="gyo_cleanOut"></div>
+      <div class="gyo-actions">
+        <button class="gyo-act-btn" onclick="gyo_copy()">복사</button>
+        <button class="gyo-act-btn dark" onclick="gyo_download()">다운로드</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="gyo-empty" id="gyo_empty">
+    <div style="font-size:48px;margin-bottom:16px">✏️</div>
+    <p style="font-size:15px;font-weight:600;color:var(--text-muted)">원고를 입력하고 편집을 시작하세요</p>
+  </div>
+</div>
+</div>
+
+<div class="panel" id="panel-2">
+<div class="main">
+  <div class="page-title">카피 및 제목안 작성</div>
+
+  <div class="card">
+    <div class="card-title">도서 제목 (가제 또는 원제)</div>
+    <input type="text" id="cp_bookTitle" placeholder="가제 또는 원제를 입력하세요">
+  </div>
+
+  <div class="card">
+    <div class="card-title">분야 선택</div>
+    <div class="genre-wrap" id="cp_genreWrap">
+      <button class="genre-btn" onclick="cp_selG(this)">소설</button>
+      <button class="genre-btn" onclick="cp_selG(this)">에세이</button>
+      <button class="genre-btn" onclick="cp_selG(this)">인문·교양</button>
+      <button class="genre-btn" onclick="cp_selG(this)">자기계발</button>
+      <button class="genre-btn" onclick="cp_selG(this)">경제·경영</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">콘셉트 및 제목·카피 방향성 (선택)</div>
+    <textarea id="cp_concept" placeholder="책의 핵심 콘셉트, 메시지, 원하는 제목·카피 방향성을 자유롭게 입력하세요&#10;비워두면 원고 파일 기반으로 자동 분석합니다"></textarea>
+  </div>
+
+  <div class="card">
+    <div class="card-title">수상·화제성 (선택)</div>
+    <textarea id="cp_awards" placeholder="예) 2025 아일랜드 북 어워드 최종 후보 / 전 세계 14개국 판권 계약&#10;띠지·뒷표지 카피에 자동 반영됩니다"></textarea>
+  </div>
+
+  <div class="card">
+    <div class="card-title">원고 파일 업로드 (선택)</div>
+    <div class="upload-zone" id="cp_uploadZone" onclick="document.getElementById('cp_fileIn').click()"
+      ondragover="event.preventDefault();this.classList.add('has-file')"
+      ondragleave="this.classList.remove('has-file')"
+      ondrop="cp_onDrop(event)">
+      <div class="upload-label">파일 선택 또는 드래그</div>
+      <div class="upload-hint">PDF · DOCX · TXT — PDF 전체 분량 분석 가능</div>
+      <input type="file" id="cp_fileIn" accept=".pdf,.docx,.txt" style="display:none" onchange="cp_onFileSelect(this)">
+    </div>
+    <div class="file-badge" id="cp_fileBadge"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">도출 항목 선택</div>
+    <div class="item-box">
+      <div class="item-hdr">
+        <input type="checkbox" id="cp_cb_title" checked onchange="cp_toggleBody('cp_body_title', this)">
+        <span class="item-label">제목안 도출</span>
+        <span class="item-desc">문장형 20개 + 단답형 20개</span>
+      </div>
+      <div class="item-body" id="cp_body_title">
+        <div class="tone-label">톤·무드</div>
+        <div class="tone-wrap" id="cp_tg_title">
+          <button class="tone-btn active" onclick="cp_selT(this)">감성적</button>
+          <button class="tone-btn" onclick="cp_selT(this)">지적·묵직한</button>
+          <button class="tone-btn" onclick="cp_selT(this)">강렬·도발적</button>
+          <button class="tone-btn" onclick="cp_selT(this)">따뜻·위로</button>
+          <button class="tone-btn" onclick="cp_selT(this)">유머러스</button>
+        </div>
+      </div>
+    </div>
+    <div class="item-box">
+      <div class="item-hdr">
+        <input type="checkbox" id="cp_cb_copy" checked onchange="cp_toggleBody('cp_body_copy', this)">
+        <span class="item-label">카피 작성</span>
+        <span class="item-desc">항목 선택 가능</span>
+      </div>
+      <div class="item-body" id="cp_body_copy">
+        <div class="tone-label">톤·무드</div>
+        <div class="tone-wrap" id="cp_tg_copy">
+          <button class="tone-btn" onclick="cp_selT(this)">감성적</button>
+          <button class="tone-btn" onclick="cp_selT(this)">지적·묵직한</button>
+          <button class="tone-btn active" onclick="cp_selT(this)">강렬·도발적</button>
+          <button class="tone-btn" onclick="cp_selT(this)">따뜻·위로</button>
+          <button class="tone-btn" onclick="cp_selT(this)">유머러스</button>
+        </div>
+        <div class="sub-items">
+          <label class="sub-item"><input type="checkbox" id="cp_s_띠지" checked><span class="sub-label">띠지 문구</span><span class="sub-count">10개</span></label>
+          <label class="sub-item"><input type="checkbox" id="cp_s_뒷표지" checked><span class="sub-label">뒷표지 문안</span><span class="sub-count">3개 (헤드+서브+바디)</span></label>
+          <label class="sub-item"><input type="checkbox" id="cp_s_배너" checked><span class="sub-label">온라인서점 배너용 카피</span><span class="sub-count">10개</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="warn-msg" id="cp_warnMsg">⚠️ 항목을 하나 이상 선택해주세요.</div>
+  </div>
+
+  <button class="generate-btn" id="cp_genBtn" onclick="cp_startGen()">제목안·카피 생성 시작 →</button>
+
+  <div class="loading" id="cp_loading">
+    <div class="spinner"></div>
+    <div class="loading-msg" id="cp_loadingMsg">베스트셀러 트렌드를 분석하고 있습니다...</div>
+  </div>
+
+  <div class="result-wrap" id="cp_resultWrap">
+    <div class="rsec" id="cp_titleResult" style="display:none">
+      <div class="rsec-title">제목안 결과</div>
+      <div class="two-col" id="cp_titleCols"></div>
+      <div class="action-bar">
+        <button class="act-btn" onclick="cp_doCopy('title')">전체 복사</button>
+        <button class="act-btn dark" onclick="cp_doPDF('title')">PDF 저장</button>
+      </div>
+    </div>
+    <div class="rsec" id="cp_copyResult" style="display:none">
+      <div class="rsec-title">카피 결과</div>
+      <div id="cp_copyCols"></div>
+      <div class="action-bar">
+        <button class="act-btn" onclick="cp_doCopy('copy')">전체 복사</button>
+        <button class="act-btn dark" onclick="cp_doPDF('copy')">PDF 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     패널 3: 보도자료 (b 팀원 파일 내용)
+══════════════════════════════════════ -->
+<div class="panel" id="panel-3">
+<div class="main">
+  <div class="page-title">보도자료</div>
+
+  <div class="card">
+    <div class="card-title"><span class="num">1</span> 담당자 정보</div>
+    <div id="pr_contacts">
+      <div class="contact-row" data-contact="0">
+        <div class="form-group small"><label>역할</label><select class="contact-role"><option>편집자</option><option>마케터</option><option>디자이너</option><option>기타</option></select></div>
+        <div class="form-group"><label>이름</label><input type="text" class="contact-name"></div>
+        <div class="form-group"><label>이메일</label><input type="email" class="contact-email"></div>
+      </div>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="pr_addContact()" style="margin-top:8px">+ 담당자 추가</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="num">2</span> 도서 기본 정보</div>
+    <div class="form-row">
+      <div class="form-group"><label>출판사명</label><input type="text" id="pr_publisherName"></div>
+      <div class="form-group"><label>도서 제목</label><input type="text" id="pr_bookTitle"></div>
+      <div class="form-group"><label>부제</label><input type="text" id="pr_bookSubtitle"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>지은이</label><input type="text" id="pr_author"></div>
+      <div class="form-group"><label>옮긴이</label><input type="text" id="pr_translator"></div>
+      <div class="form-group small"><label>쪽수</label><input type="text" id="pr_pages"></div>
+      <div class="form-group small"><label>크기</label><input type="text" id="pr_bookSize"></div>
+      <div class="form-group small"><label>제본</label>
+        <select id="pr_binding"><option value=""></option><option>무선본</option><option>양장본</option></select>
+      </div>
+      <div class="form-group small"><label>가격</label><input type="text" id="pr_price"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>분야</label><input type="text" id="pr_category"></div>
+      <div class="form-group medium"><label>발행일</label><input type="date" id="pr_pubDate"></div>
+      <div class="form-group"><label>ISBN</label><input type="text" id="pr_isbn"></div>
+      <div class="form-group"><label>키워드</label><input type="text" id="pr_keywords"></div>
+    </div>
+    <div style="margin-top:12px">
+      <label style="font-size:12px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px">표지 이미지</label>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <div class="cover-preview" id="pr_coverPreview" onclick="document.getElementById('pr_coverInput').click()"
+          ondragover="event.preventDefault();this.classList.add('dragover')"
+          ondragleave="this.classList.remove('dragover')"
+          ondrop="pr_handleCoverDrop(event)">
+          <div class="placeholder">클릭 또는<br>드래그하여<br>이미지 업로드</div>
+        </div>
+        <input type="file" id="pr_coverInput" accept="image/*" style="display:none" onchange="pr_previewCover(this.files[0])">
+        <div style="font-size:12px;color:var(--text-hint);padding-top:4px">JPG, PNG 권장<br>보도자료 1페이지에 배치됩니다</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="num">3</span> 참고 자료 첨부</div>
+    <div class="dropzone" id="pr_dropzone"
+      ondragover="pr_handleDragOver(event)" ondragleave="pr_handleDragLeave(event)"
+      ondrop="pr_handleDrop(event)" onclick="document.getElementById('pr_fileInput').click()">
+      <div class="dropzone-icon">📎</div>
+      <div class="dropzone-text">파일을 여기에 드래그하거나 클릭하여 첨부<br><small>원고 PDF, 표지문안 PDF, 브레인스토밍 자료 등</small></div>
+    </div>
+    <input type="file" id="pr_fileInput" multiple style="display:none" onchange="pr_handleFiles(this.files)">
+    <div class="file-list" id="pr_fileList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="border-bottom:none;margin-bottom:12px"><span class="num">AI</span> 보도자료 작성</div>
+
+    <div style="text-align:center">
+      <button class="btn btn-primary btn-lg" onclick="pr_generatePressRelease()" id="pr_generateBtn" style="padding:14px 48px;font-size:16px">보도자료 작성</button>
+      <div id="pr_progressArea" style="display:none;margin-top:12px">
+        <div style="display:inline-block;width:24px;height:24px;border:3px solid var(--lavender-pale);border-top-color:var(--lavender);border-radius:50%;animation:spin .8s linear infinite"></div>
+        <span id="pr_progressMsg" style="color:var(--text-muted);font-size:13px;margin-left:8px"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="ai-results">
+    <div class="card"><div class="card-title"><span class="num">4</span> 헤드카피</div>
+      <div class="form-group"><label>대표 인용구</label><input type="text" id="pr_mainQuote"><div class="hint">작품 속 인상적인 한 문장</div></div>
+      <div class="form-group" style="margin-top:12px"><label>태그라인</label><textarea id="pr_taglines" rows="3"></textarea><div class="hint">줄바꿈으로 구분. 2~3줄 권장</div></div>
+    </div>
+    <div class="card"><div class="card-title"><span class="num">5</span> 책 소개</div>
+      <textarea id="pr_bookIntro" rows="6"></textarea>
+    </div>
+    <div class="card"><div class="card-title"><span class="num">6</span> 출판사 리뷰</div>
+      <textarea id="pr_pubReview" rows="4"></textarea>
+    </div>
+    <div class="card"><div class="card-title"><span class="num">7</span> 저자 소개</div>
+      <textarea id="pr_authorBio" rows="4"></textarea>
+    </div>
+    <div class="card"><div class="card-title"><span class="num">8</span> 역자 소개</div>
+      <textarea id="pr_translatorBio" rows="3"></textarea>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="num">9</span> 본문 발췌</div>
+      <div id="pr_excerpts">
+        <div class="excerpt-row">
+          <div class="excerpt-num">1</div>
+          <textarea class="excerpt-text" placeholder="발췌 내용을 입력하세요"></textarea>
+          <div class="page-input"><label style="font-size:11px;color:var(--text-hint)">페이지</label><input type="text" class="excerpt-page" placeholder="예) 42"></div>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="pr_addExcerpt()" style="margin-top:8px">+ 발췌 추가</button>
+    </div>
+  </div>
+
+  <div class="pr-action-bar">
+    <div class="left-btns">
+      <button class="btn btn-outline" onclick="pr_downloadDocx()">DOCX 다운로드</button>
+    </div>
+    <button class="btn btn-primary" onclick="pr_previewPressRelease()">미리보기</button>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     패널 4: 도서 기획 (a 파일)
+══════════════════════════════════════ -->
+<div class="panel" id="panel-4">
+<div class="main">
+  <div class="page-title">도서 기획</div>
+
+  <div class="card">
+    <div class="card-title">분야 선택</div>
+    <div class="chips" id="plan-genre">
+      <div class="chip" onclick="toggleSingle(this,'plan-genre')">소설</div>
+      <div class="chip" onclick="toggleSingle(this,'plan-genre')">에세이</div>
+      <div class="chip" onclick="toggleSingle(this,'plan-genre')">인문·교양</div>
+      <div class="chip" onclick="toggleSingle(this,'plan-genre')">자기계발</div>
+      <div class="chip" onclick="toggleSingle(this,'plan-genre')">경제·경영</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">저자 + 기획 내용</div>
+    <div class="hint" style="margin-bottom:12px">저자명 + 직업·활동 내역을 함께 입력하거나, 블로그·SNS·유튜브 URL을 붙여넣으세요</div>
+    <div class="field-label">저자</div>
+    <input type="text" id="plan-author" placeholder="예: 홍길동 / 마케터, 유튜브 채널 운영 — 또는 블로그·SNS·소개 URL 입력" style="margin-bottom:14px">
+    <div class="divider"></div>
+    <div class="field-label" style="margin-top:14px">소재 / 핵심 내용</div>
+    <textarea id="plan-concept" placeholder="이 책이 다루는 소재와 핵심 내용을 자유롭게 입력하세요" style="min-height:100px;margin-bottom:12px"></textarea>
+    <div class="field-label">기획 의도</div>
+    <textarea id="plan-intent" placeholder="왜 지금 이 책이 필요한지, 어떤 사회적 맥락에서 기획했는지 입력하세요" style="min-height:80px"></textarea>
+  </div>
+
+  <button class="run-btn" onclick="runPreliminary()" id="prelim-btn">진행 →</button>
+
+  <div id="prelim-result" style="display:none">
+    <div class="card" style="border-left:3px solid var(--lavender)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="card-title" style="margin:0;padding:0;border:none;font-size:13px">AI 분석 결과 — 기획 방향</div>
+        <button class="copy-btn" style="position:static" onclick="copyPrelim(this)">복사</button>
+      </div>
+      <div id="prelim-text" style="white-space:pre-wrap;font-size:13px;line-height:1.9;color:var(--text-muted)"></div>
+      <div id="dir-select-wrap" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px">기획 방향을 선택하고 AI와 발전시키세요</div>
+        <div class="dir-btns">
+          <button class="dir-btn" id="dir-btn-1" onclick="selectDirection(1)">방향 1</button>
+          <button class="dir-btn" id="dir-btn-2" onclick="selectDirection(2)">방향 2</button>
+          <button class="dir-btn" id="dir-btn-3" onclick="selectDirection(3)">방향 3</button>
+        </div>
+      </div>
+    </div>
+    <div class="chat-wrap" id="plan-chat" style="display:none">
+      <div class="chat-header">
+        <span id="chat-dir-label">방향 선택됨 — AI와 기획 발전</span>
+        <button class="chat-reset" onclick="resetDirection()">방향 재선택</button>
+      </div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-row">
+        <textarea id="chat-input" placeholder="이 방향으로 더 구체화하고 싶은 내용을 입력하세요 (Ctrl+Enter: 전송)" onkeydown="if(event.ctrlKey&&event.key==='Enter')sendChat()"></textarea>
+        <button class="chat-send-btn" id="chat-send-btn" onclick="sendChat()">전송</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+      <button class="run-btn" onclick="runAgent(5)" style="margin-top:0">내부 논의용 기획안 생성 →</button>
+      <button class="run-btn" onclick="runExternalPlan()" id="ext-plan-btn" style="margin-top:0;background:var(--lavender-light)">외부 전달용 기획안 초안 →</button>
+    </div>
+  </div>
+
+  <div class="output-wrap" id="out-5" style="display:none">
+    <div class="output-header"><div class="output-label">기획안 — 내부 논의용</div></div>
+    <div class="output-tabs">
+      <div class="otab on" onclick="switchOtab(5,0)">기획안</div>
+      <div class="otab" onclick="switchOtab(5,1)">타깃 독자</div>
+      <div class="otab" onclick="switchOtab(5,2)">벤치마크 도서</div>
+      <div class="otab" onclick="switchOtab(5,3)">후보 제목 5개</div>
+    </div>
+    <div class="output-box" id="oc-5">
+      <button class="copy-btn" onclick="copyOut('oc-5',this)">복사</button>
+      <span id="oc-5-text" style="white-space:pre-wrap;font-size:13px;line-height:1.9"></span>
+    </div>
+  </div>
+  <div class="output-wrap" id="out-5-ext" style="display:none">
+    <div class="output-header"><div class="output-label">기획안 — 외부 전달용</div><div style="font-size:11px;color:var(--text-hint)">직접 수정 가능</div></div>
+    <div class="output-box" style="padding:0;overflow:hidden">
+      <button class="copy-btn" onclick="copyExtPlan(this)" style="z-index:2">복사</button>
+      <textarea id="oc-5-ext-text" style="width:100%;min-height:480px;border:none;outline:none;padding:20px;font-size:13px;line-height:1.9;color:var(--text-muted);font-family:'Noto Sans KR',sans-serif;background:transparent;resize:vertical;box-sizing:border-box" placeholder="외부 전달용 기획안이 여기에 생성됩니다."></textarea>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     패널 5: 편집 일정
+══════════════════════════════════════ -->
+<div class="panel" id="panel-5">
+<div class="main">
+  <div class="page-title">편집 일정</div>
+
+  <div class="card">
+    <div class="card-title">출간 일정 추가</div>
+    <div class="input-grid">
+      <div>
+        <div class="field-label">도서 제목</div>
+        <input type="text" id="sch-new-title" placeholder="예: 번아웃 없이 일하는 법" onkeydown="if(event.key==='Enter')addBook()">
+      </div>
+      <div>
+        <div class="field-label">저자</div>
+        <input type="text" id="sch-new-author" placeholder="예: 홍길동" onkeydown="if(event.key==='Enter')addBook()">
+      </div>
+      <div>
+        <div class="field-label">출간 예정일</div>
+        <input type="text" id="sch-new-pubdate" placeholder="예: 2026. 7. 15" readonly onclick="openDatePicker(this)" style="cursor:pointer" onkeydown="if(event.key==='Enter')addBook()">
+      </div>
+      <div>
+        <div class="field-label">담당자</div>
+        <input type="text" id="sch-new-editor" placeholder="예: 김편집" onkeydown="if(event.key==='Enter')addBook()">
+      </div>
+      <div class="full">
+        <div class="field-label">색상</div>
+        <div id="sch-color-picker" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"></div>
+      </div>
+    </div>
+    <button class="run-btn" onclick="addBook()" style="margin-top:14px">일정 추가 →</button>
+  </div>
+
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+    <input type="text" id="slack-webhook-input" placeholder="Slack 웹훅 URL 입력 (저장되면 전송 버튼 활성화)" style="flex:1;font-size:12px">
+    <button class="dl-btn" onclick="saveSlackWebhook()" style="flex-shrink:0">저장</button>
+  </div>
+
+  <div class="view-tabs">
+    <button class="view-tab active" id="vt-book" onclick="switchView('book')">책 제목</button>
+    <button class="view-tab" id="vt-editor" onclick="switchView('editor')">담당자</button>
+  </div>
+
+  <div id="book-cards"></div>
+</div>
+</div>
+
+<div class="toast" id="globalToast">복사됐어요!</div>
+
+<script>
+/* ══════════════════════════════════
+   전역: 탭 전환
+══════════════════════════════════ */
+function switchTab(idx) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i === idx));
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i === idx));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('globalToast');
+  t.textContent = msg || '복사됐어요!';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* ══════════════════════════════════
+   공통 서버 URL
+══════════════════════════════════ */
+const SERVER = '/api';
+
+/* ══════════════════════════════════
+   패널 0: 원고 검토 JS
+══════════════════════════════════ */
+let ms_selectedGenre = '';
+let ms_fileText = '';
+let ms_results = {};
+let ms_activeItems = [];
+
+const MS_LABELS = {
+  plot: '줄거리 및 구성 분석',
+  target: '타깃 독자 분석',
+  edit: '편집 방향 제안',
+  sales: '핵심 세일즈 포인트',
+  comp: '경쟁도서 분석'
+};
+
+function ms_selectGenre(el) {
+  document.querySelectorAll('#panel-0 .genre-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  ms_selectedGenre = el.textContent.trim();
+}
+function ms_onFileSelect(input) { if (input.files[0]) ms_handleFile(input.files[0]); }
+function ms_onDrop(e) {
+  e.preventDefault();
+  document.getElementById('ms_uploadZone').classList.remove('has-file');
+  if (e.dataTransfer.files[0]) ms_handleFile(e.dataTransfer.files[0]);
+}
+function ms_handleFile(file) {
+  document.getElementById('ms_uploadZone').classList.add('has-file');
+  const badge = document.getElementById('ms_fileBadge');
+  badge.style.display = 'inline-block';
+  badge.textContent = '📎 ' + file.name;
+  document.getElementById('ms_rangeBox').style.display = 'block';
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'txt') {
+    const r = new FileReader();
+    r.onload = e => { ms_fileText = e.target.result; };
+    r.readAsText(file, 'UTF-8');
+  } else {
+    ms_fileText = '[FILE:' + file.name + ']';
+  }
+}
+async function ms_startAnalysis() {
+  const checked = [...document.querySelectorAll('#panel-0 .check-list input:checked')];
+  if (checked.length === 0) { document.getElementById('ms_warnMsg').style.display = 'block'; return; }
+  document.getElementById('ms_warnMsg').style.display = 'none';
+  const textInput = document.getElementById('ms_manuscriptText').value.trim();
+  const content = ms_fileText || textInput;
+  if (!content) { alert('원고 파일을 업로드하거나 텍스트를 입력해주세요.'); return; }
+  if (!ms_selectedGenre) { alert('분야를 선택해주세요.'); return; }
+  ms_activeItems = checked.map(c => c.value);
+  ms_results = {};
+  document.getElementById('ms_analyzeBtn').disabled = true;
+  document.getElementById('ms_loading').style.display = 'block';
+  document.getElementById('ms_resultWrap').style.display = 'none';
+  const msgs = ['원고를 읽고 있습니다...','분야별 베스트셀러와 비교 중...','최신 트렌드를 검색하고 있습니다...','결과를 정리하고 있습니다...'];
+  let mi = 0;
+  const timer = setInterval(() => { document.getElementById('ms_loadingMsg').textContent = msgs[++mi % msgs.length]; }, 2800);
+  try {
+    const rangeVal = document.querySelector('input[name=ms_range]:checked')?.value || 'full';
+    let manuscriptContent = content;
+    if (rangeVal === '30pct') manuscriptContent = content.slice(0, Math.floor(content.length * 0.3));
+    const prompt = ms_buildPrompt(manuscriptContent, ms_selectedGenre, ms_activeItems);
+    const res = await fetch(SERVER + '/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, genre: ms_selectedGenre, items: ms_activeItems })
+    });
+    if (!res.ok) throw new Error('서버 오류: ' + res.status);
+    const data = await res.json();
+    ms_parseAndRender(data.result, ms_activeItems);
+  } catch (err) {
+    alert('분석 중 오류가 발생했습니다.\n' + err.message);
+  } finally {
+    clearInterval(timer);
+    document.getElementById('ms_loading').style.display = 'none';
+    document.getElementById('ms_analyzeBtn').disabled = false;
+  }
+}
+function ms_buildPrompt(content, genre, items) {
+  const isTranslation = genre === '번역서';
+  return `당신은 대한민국 출판사 더 북맨 1본부의 전문 편집자입니다.
+아래 원고를 분석하여 요청된 항목별로 실무에 바로 활용 가능한 한국어 분석 결과를 작성하세요.
+${isTranslation ? '※ 번역서입니다. 모든 분석 결과는 한국어로 작성하세요.' : ''}
+[분야] ${genre}
+[요청 항목] ${items.map(i => MS_LABELS[i]).join(', ')}
+[원고]
+${content.slice(0, 60000)}
+---
+${items.includes('plot') ? `<SECTION:줄거리 및 구성 분석>\n### 줄거리 요약\n핵심 내용을 3~5문장으로 요약한다.\n### 구성 분석\n챕터 구조, 서사 흐름, 호흡, 밀도를 분석한다.\n</SECTION>` : ''}
+${items.includes('target') ? `<SECTION:타깃 독자 분석>\n### 핵심 독자층\n연령대, 성별, 관심사, 상황 등을 구체적으로 서술한다.\n### 확장 독자층\n마케팅으로 확장 가능한 독자층을 제안한다.\n</SECTION>` : ''}
+${items.includes('edit') ? `<SECTION:편집 방향 제안>\n### 원고 장점\n살려야 할 강점 요소를 구체적으로 서술한다.\n### 원고 단점 및 보완 필요 사항\n문제점을 구체적으로 지적한다.\n### 편집 방향 제안 (우선순위 순)\n1순위부터 구체적 제안을 작성한다.\n</SECTION>` : ''}
+${items.includes('sales') ? `<SECTION:핵심 세일즈 포인트>\n### 핵심 세일즈 포인트\n마케팅에 즉시 활용 가능한 핵심 요소를 나열한다.\n### 한 줄 카피 후보 3개\n제목·띠지에 바로 쓸 수 있는 핵심 문장을 3개 제안한다.\n### SNS 바이럴 가능성\n화제성, 공유 유발 요소를 분석한다.\n</SECTION>` : ''}
+${items.includes('comp') ? `<SECTION:경쟁도서 분석>\n최근 2년간 ${genre} 분야 베스트셀러 중 이 원고와 유사한 포지션의 도서를 분석하라.\n### 주요 경쟁도서\n도서명, 저자, 출판사를 정리한다.\n### 경쟁도서 대비 차별점\n이 원고만의 강점을 서술한다.\n### 포지셔닝 제안\n어떤 포지션으로 출간하면 효과적인지 제안한다.\n</SECTION>` : ''}`;
+}
+function ms_parseAndRender(fullText, items) {
+  items.forEach(item => {
+    const label = MS_LABELS[item];
+    const rx = new RegExp(`<SECTION:${label}>([\\s\\S]*?)</SECTION>`, 'i');
+    const m = fullText.match(rx);
+    ms_results[item] = m ? m[1].trim() : fullText;
+  });
+  const tabsEl = document.getElementById('ms_resultTabs');
+  const panelsEl = document.getElementById('ms_resultPanels');
+  tabsEl.innerHTML = ''; panelsEl.innerHTML = '';
+  items.forEach((item, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'rtab' + (idx === 0 ? ' active' : '');
+    btn.textContent = MS_LABELS[item];
+    btn.onclick = () => ms_switchTab(idx);
+    tabsEl.appendChild(btn);
+    const panel = document.createElement('div');
+    panel.className = 'rpanel' + (idx === 0 ? ' active' : '');
+    panel.innerHTML = `<div class="result-card"><div class="result-content">${ms_fmt(ms_results[item])}</div><div class="action-bar"><button class="act-btn" onclick="ms_copy('${item}')">전체 복사</button><button class="act-btn dark" onclick="ms_pdf('${item}')">PDF 저장</button></div></div>`;
+    panelsEl.appendChild(panel);
+  });
+  document.getElementById('ms_resultWrap').style.display = 'block';
+  document.getElementById('ms_resultWrap').scrollIntoView({ behavior: 'smooth' });
+}
+function ms_fmt(t) { return t.replace(/### (.+)/g,'<span class="section-head">$1</span>').replace(/\n/g,'<br>'); }
+function ms_switchTab(idx) {
+  document.querySelectorAll('#ms_resultTabs .rtab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  document.querySelectorAll('#ms_resultPanels .rpanel').forEach((p,i) => p.classList.toggle('active', i===idx));
+}
+function ms_copy(item) { navigator.clipboard.writeText(ms_results[item]||'').then(()=>showToast()); }
+function ms_pdf(item) {
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${MS_LABELS[item]}</title><style>body{font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;padding:48px;font-size:13px;line-height:1.85;color:#1a1a1a;max-width:720px;margin:0 auto}h1{font-size:18px;font-weight:700;margin-bottom:4px}h2{font-size:13px;font-weight:700;color:#555;margin:22px 0 6px;padding-bottom:4px;border-bottom:1px solid #eee}.meta{font-size:12px;color:#999;margin-bottom:32px}</style></head><body><h1>원고 검토 — ${MS_LABELS[item]}</h1><div class="meta">THE BOOKMAN 1본부 | ${new Date().toLocaleDateString('ko-KR')}</div>${(ms_results[item]||'').replace(/### (.+)/g,'<h2>$1</h2>').replace(/\n/g,'<br>')}</body></html>`);
+  w.document.close(); setTimeout(()=>w.print(),600);
+}
+
+/* ══════════════════════════════════
+   패널 2: 카피 및 제목안 JS
+══════════════════════════════════ */
+let cp_fileText = '';
+let cp_titleResult = '';
+let cp_copyResult = '';
+
+function cp_selG(el) {
+  document.querySelectorAll('#cp_genreWrap .genre-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+function cp_selT(el) { el.closest('.tone-wrap').querySelectorAll('.tone-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); }
+function cp_toggleBody(id, cb) { document.getElementById(id).style.display = cb.checked ? 'block' : 'none'; }
+function cp_onFileSelect(input) { if (input.files[0]) cp_handleFile(input.files[0]); }
+function cp_onDrop(e) { e.preventDefault(); document.getElementById('cp_uploadZone').classList.remove('has-file'); if (e.dataTransfer.files[0]) cp_handleFile(e.dataTransfer.files[0]); }
+function cp_handleFile(file) {
+  document.getElementById('cp_uploadZone').classList.add('has-file');
+  const badge = document.getElementById('cp_fileBadge');
+  badge.style.display = 'inline-block';
+  badge.textContent = '📎 ' + file.name;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'txt') { const r = new FileReader(); r.onload = e => { cp_fileText = e.target.result; }; r.readAsText(file,'UTF-8'); }
+  else { cp_fileText = '[FILE:' + file.name + ']'; }
+}
+async function cp_startGen() {
+  const titleOn = document.getElementById('cp_cb_title').checked;
+  const copyOn = document.getElementById('cp_cb_copy').checked;
+  const 띠지On = document.getElementById('cp_s_띠지').checked;
+  const 뒷표지On = document.getElementById('cp_s_뒷표지').checked;
+  const 배너On = document.getElementById('cp_s_배너').checked;
+  if (!titleOn && !copyOn) { document.getElementById('cp_warnMsg').style.display='block'; return; }
+  if (copyOn && !띠지On && !뒷표지On && !배너On) { document.getElementById('cp_warnMsg').style.display='block'; return; }
+  document.getElementById('cp_warnMsg').style.display = 'none';
+  const bookTitle = document.getElementById('cp_bookTitle').value.trim();
+  const concept = document.getElementById('cp_concept').value.trim();
+  const awards = document.getElementById('cp_awards').value.trim();
+  const genre = document.querySelector('#cp_genreWrap .genre-btn.active')?.textContent || '';
+  const titleTone = document.querySelector('#cp_tg_title .tone-btn.active')?.textContent || '감성적';
+  const copyTone = document.querySelector('#cp_tg_copy .tone-btn.active')?.textContent || '강렬·도발적';
+  if (!genre) { alert('분야를 선택해주세요.'); return; }
+  if (!bookTitle && !cp_fileText) { alert('도서 제목 또는 원고 파일을 입력해주세요.'); return; }
+  document.getElementById('cp_genBtn').disabled = true;
+  document.getElementById('cp_loading').style.display = 'block';
+  document.getElementById('cp_resultWrap').style.display = 'none';
+  document.getElementById('cp_titleResult').style.display = 'none';
+  document.getElementById('cp_copyResult').style.display = 'none';
+  const msgs = ['최신 서점 베스트셀러를 분석하고 있습니다...','출판 트렌드 기사를 검색하고 있습니다...','한국 독자 수요를 파악하고 있습니다...','베스트셀러용 제목·카피를 생성하고 있습니다...'];
+  let mi = 0;
+  const timer = setInterval(()=>{ document.getElementById('cp_loadingMsg').textContent = msgs[++mi%msgs.length]; }, 2500);
+  try {
+    const prompt = cp_buildPrompt(bookTitle, genre, concept, awards, titleOn, titleTone, copyOn, copyTone, 띠지On, 뒷표지On, 배너On);
+    const res = await fetch(SERVER + '/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, genre, items: ['copy_title'] })
+    });
+    if (!res.ok) throw new Error('서버 오류: ' + res.status);
+    const data = await res.json();
+    cp_parseAndRender(data.result, titleOn, copyOn, 띠지On, 뒷표지On, 배너On);
+  } catch (err) {
+    alert('생성 중 오류가 발생했습니다.\n' + err.message);
+  } finally {
+    clearInterval(timer);
+    document.getElementById('cp_loading').style.display = 'none';
+    document.getElementById('cp_genBtn').disabled = false;
+  }
+}
+function cp_buildPrompt(title, genre, concept, awards, titleOn, titleTone, copyOn, copyTone, 띠지On, 뒷표지On, 배너On) {
+  return `당신은 대한민국 출판 시장 최고의 카피라이터이자 편집 전문가입니다.
+아래 도서 정보를 바탕으로 반드시 베스트셀러가 될 수 있는 제목안과 카피를 생성하세요.
+[핵심 원칙] 2024~현재 한국 서점 베스트셀러 트렌드를 반드시 반영하라. 베스트셀러가 될 수 있는 임팩트와 시장성을 최우선으로 한다.
+[도서 정보] 제목(가제/원제): ${title||'(미입력)'} / 분야: ${genre} / 콘셉트 및 방향성: ${concept||'(미입력)'} / 수상·화제성: ${awards||'없음'}
+${cp_fileText ? '\n[원고 내용]\n' + cp_fileText.slice(0,50000) : ''}
+---
+${titleOn ? `<SECTION:제목안>\n[제목 톤·무드: ${titleTone}]\n### 문장형 제목안 20개\n(한 줄에 하나씩, 번호 포함)\n### 단답형 제목안 20개\n(한 줄에 하나씩, 번호 포함)\n</SECTION>` : ''}
+${copyOn ? `<SECTION:카피>\n[카피 톤·무드: ${copyTone}]\n${띠지On?'### 띠지 문구 10개\n[2행형]/[1줄+부연형]/[1줄형] 유형 표기하여 10개 제안\n':''}${뒷표지On?'### 뒷표지 문안 3개\n헤드카피:/서브카피:/바디글: 형식으로 3개 작성\n':''}${배너On?'### 온라인서점 배너용 카피 10개\n구매 유발하는 강렬한 1~2줄 카피 10개\n':''}</SECTION>` : ''}`;
+}
+function cp_parseAndRender(fullText, titleOn, copyOn, 띠지On, 뒷표지On, 배너On) {
+  if (titleOn) {
+    const m = fullText.match(/<SECTION:제목안>([\s\S]*?)<\/SECTION>/i);
+    if (m) {
+      cp_titleResult = m[1].trim();
+      const sentM = cp_titleResult.match(/### 문장형 제목안 20개([\s\S]*?)(?=###|$)/i);
+      const shortM = cp_titleResult.match(/### 단답형 제목안 20개([\s\S]*?)(?=###|$)/i);
+      const parseItems = raw => raw ? raw.trim().split('\n').filter(l=>/^\d+\./.test(l.trim())).map(l=>l.replace(/^\d+\.\s*/,'').trim()) : [];
+      const sentences = parseItems(sentM?.[1]);
+      const shorts = parseItems(shortM?.[1]);
+      document.getElementById('cp_titleCols').innerHTML = `
+        <div class="rcol"><div class="rcol-title">문장형 제목안 20개</div>${sentences.map((t,i)=>`<div class="ritem"><span class="rnum">${i+1}</span>${t}</div>`).join('')}</div>
+        <div class="rcol"><div class="rcol-title">단답형 제목안 20개</div>${shorts.map((t,i)=>`<div class="ritem"><span class="rnum">${i+1}</span>${t}</div>`).join('')}</div>`;
+      document.getElementById('cp_titleResult').style.display = 'block';
+    }
+  }
+  if (copyOn) {
+    const m = fullText.match(/<SECTION:카피>([\s\S]*?)<\/SECTION>/i);
+    if (m) {
+      cp_copyResult = m[1].trim();
+      let html = '';
+      if (띠지On) {
+        const tm = cp_copyResult.match(/### 띠지 문구 10개([\s\S]*?)(?=###|$)/i);
+        if (tm) {
+          html += `<div class="csec"><div class="csec-type">띠지 문구 — 10개</div>`;
+          const lines = tm[1].trim().split('\n').filter(l=>l.trim());
+          let cur='', num=0;
+          lines.forEach(line => {
+            const match = line.match(/^\[(.+?)\]\s*(.*)/);
+            if (match || /^\d+\./.test(line)) {
+              if (cur) html += `<div class="citem">${cur}</div>`;
+              num++; cur = '';
+              const content = match ? match[2] : line.replace(/^\d+\.\s*/,'');
+              const type = match ? match[1] : '';
+              cur += `<div class="cn">${String(num).padStart(2,'0')}${type?' · '+type:''}</div><div class="띠지-head">${content}</div>`;
+            } else if (line.trim()) { cur += `<div class="띠지-sub">${line.trim()}</div>`; }
+          });
+          if (cur) html += `<div class="citem">${cur}</div>`;
+          html += '</div>';
+        }
+      }
+      if (뒷표지On) {
+        const bm = cp_copyResult.match(/### 뒷표지 문안 3개([\s\S]*?)(?=###|$)/i);
+        if (bm) {
+          html += `<div class="csec"><div class="csec-type">뒷표지 문안 — 3개</div>`;
+          const blocks = bm[1].trim().split(/(?=헤드카피:)/);
+          blocks.filter(b=>b.trim()).forEach((block, i) => {
+            const head = block.match(/헤드카피:\s*(.+)/)?.[1]?.trim() || '';
+            const sub = block.match(/서브카피:\s*(.+)/)?.[1]?.trim() || '';
+            const body = block.match(/바디글:\s*([\s\S]+?)(?=헤드카피:|$)/i)?.[1]?.trim() || '';
+            html += `<div class="citem"><div class="cn">${String(i+1).padStart(2,'0')}</div><div class="back-head">${head}</div>${sub?`<div class="back-sub">${sub}</div>`:''}<div class="back-body">${body}</div></div>`;
+          });
+          html += '</div>';
+        }
+      }
+      if (배너On) {
+        const nm = cp_copyResult.match(/### 온라인서점 배너용 카피 10개([\s\S]*?)(?=###|$)/i);
+        if (nm) {
+          html += `<div class="csec"><div class="csec-type">온라인서점 배너용 카피 — 10개</div>`;
+          nm[1].trim().split('\n').filter(l=>/^\d+\./.test(l.trim())).forEach((item,i) => {
+            html += `<div class="citem"><div class="cn">${String(i+1).padStart(2,'0')}</div><div class="banner-text">${item.replace(/^\d+\.\s*/,'')}</div></div>`;
+          });
+          html += '</div>';
+        }
+      }
+      document.getElementById('cp_copyCols').innerHTML = `<div class="copy-col">${html}</div>`;
+      document.getElementById('cp_copyResult').style.display = 'block';
+    }
+  }
+  document.getElementById('cp_resultWrap').style.display = 'block';
+  document.getElementById('cp_resultWrap').scrollIntoView({ behavior: 'smooth' });
+}
+function cp_doCopy(type) { navigator.clipboard.writeText(type==='title'?cp_titleResult:cp_copyResult||'').then(()=>showToast()); }
+function cp_doPDF(type) {
+  const label = type==='title'?'제목안':'카피';
+  const text = type==='title'?cp_titleResult:cp_copyResult;
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${label}</title><style>body{font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;padding:48px;font-size:13px;line-height:1.85;color:#1a1a1a;max-width:720px;margin:0 auto}h1{font-size:18px;font-weight:700}h2{font-size:13px;font-weight:700;color:#555;margin:20px 0 6px;padding-bottom:4px;border-bottom:1px solid #eee}.meta{font-size:12px;color:#999;margin-bottom:32px}</style></head><body><h1>카피 및 ${label} 결과</h1><div class="meta">THE BOOKMAN 1본부 | ${new Date().toLocaleDateString('ko-KR')}</div>${text.replace(/### (.+)/g,'<h2>$1</h2>').replace(/\n/g,'<br>')}</body></html>`);
+  w.document.close(); setTimeout(()=>w.print(),600);
+}
+
+/* ══════════════════════════════════
+   패널 3: 보도자료 JS
+══════════════════════════════════ */
+let pr_files = [];
+let pr_coverDataUrl = null;
+
+function pr_addContact() {
+  const container = document.getElementById('pr_contacts');
+  const row = document.createElement('div');
+  row.className = 'contact-row';
+  row.innerHTML = `<div class="form-group small"><label>역할</label><select class="contact-role"><option>편집자</option><option>마케터</option><option>디자이너</option><option>기타</option></select></div><div class="form-group"><label>이름</label><input type="text" class="contact-name"></div><div class="form-group"><label>이메일</label><input type="email" class="contact-email"></div><div class="remove-btn"><button class="btn btn-danger btn-sm" onclick="this.closest('.contact-row').remove()">삭제</button></div>`;
+  container.appendChild(row);
+}
+function pr_previewCover(file) {
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = e => {
+    pr_coverDataUrl = e.target.result;
+    const prev = document.getElementById('pr_coverPreview');
+    prev.innerHTML = `<img src="${e.target.result}" alt="표지">`;
+  };
+  r.readAsDataURL(file);
+}
+function pr_handleCoverDrop(e) {
+  e.preventDefault();
+  document.getElementById('pr_coverPreview').classList.remove('dragover');
+  if (e.dataTransfer.files[0]) pr_previewCover(e.dataTransfer.files[0]);
+}
+function pr_handleDragOver(e) { e.preventDefault(); document.getElementById('pr_dropzone').classList.add('dragover'); }
+function pr_handleDragLeave() { document.getElementById('pr_dropzone').classList.remove('dragover'); }
+function pr_handleDrop(e) { e.preventDefault(); document.getElementById('pr_dropzone').classList.remove('dragover'); pr_handleFiles(e.dataTransfer.files); }
+function pr_handleFiles(files) {
+  [...files].forEach(file => {
+    pr_files.push(file);
+    const item = document.createElement('div');
+    item.className = 'file-item';
+    item.innerHTML = `<div class="file-info"><span>📎</span><span>${file.name}</span><span class="file-size">${(file.size/1024).toFixed(0)}KB</span></div><button class="btn btn-danger btn-sm" onclick="pr_removeFile(this,'${file.name}')">삭제</button>`;
+    document.getElementById('pr_fileList').appendChild(item);
+  });
+}
+function pr_removeFile(btn, name) { pr_files = pr_files.filter(f=>f.name!==name); btn.closest('.file-item').remove(); }
+function pr_addExcerpt() {
+  const container = document.getElementById('pr_excerpts');
+  const num = container.children.length + 1;
+  const row = document.createElement('div');
+  row.className = 'excerpt-row';
+  row.innerHTML = `<div class="excerpt-num">${num}</div><textarea class="excerpt-text" placeholder="발췌 내용을 입력하세요"></textarea><div class="page-input"><label style="font-size:11px;color:var(--text-hint)">페이지</label><input type="text" class="excerpt-page" placeholder="예) 42"></div>`;
+  container.appendChild(row);
+}
+async function pr_generatePressRelease() {
+
+  const bookTitle = document.getElementById('pr_bookTitle').value.trim();
+  if (!bookTitle) { alert('도서 제목을 입력해주세요.'); return; }
+  document.getElementById('pr_generateBtn').disabled = true;
+  document.getElementById('pr_progressArea').style.display = 'block';
+  const msgs = ['파일을 분석하고 있습니다...','책 소개를 작성하고 있습니다...','보도자료를 생성하고 있습니다...'];
+  let mi = 0;
+  const timer = setInterval(()=>{ document.getElementById('pr_progressMsg').textContent = msgs[mi++%msgs.length]; }, 2000);
+  try {
+    const prompt = `당신은 출판사 더 북맨의 홍보 전문가입니다. 아래 도서 정보를 바탕으로 보도자료의 각 섹션을 작성하세요.
+도서 제목: ${bookTitle}
+저자: ${document.getElementById('pr_author').value||''}
+분야: ${document.getElementById('pr_category').value||''}
+키워드: ${document.getElementById('pr_keywords').value||''}
+
+아래 형식으로 작성하세요:
+<HEADCOPY>임팩트 있는 인용구 1문장</HEADCOPY>
+<TAGLINE>태그라인 2~3줄 (줄바꿈 구분)</TAGLINE>
+<INTRO>책 소개 (300자 이내)</INTRO>
+<REVIEW>출판사 리뷰 (200자 이내)</REVIEW>
+<AUTHORBIO>저자 소개 (150자 이내)</AUTHORBIO>`;
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    if (!res.ok) throw new Error('서버 오류: ' + res.status);
+    const data = await res.json();
+    const text = data.result || '';
+    const get = (tag) => text.match(new RegExp(`<${tag}>([\\s\\S]*?)<\/${tag}>`))?.[1]?.trim() || '';
+    document.getElementById('pr_mainQuote').value = get('HEADCOPY');
+    document.getElementById('pr_taglines').value = get('TAGLINE');
+    document.getElementById('pr_bookIntro').value = get('INTRO');
+    document.getElementById('pr_pubReview').value = get('REVIEW');
+    document.getElementById('pr_authorBio').value = get('AUTHORBIO');
+    document.getElementById('ai-results').classList.add('show');
+  } catch (err) {
+    alert('보도자료 생성 중 오류가 발생했습니다.\n' + err.message);
+  } finally {
+    clearInterval(timer);
+    document.getElementById('pr_progressArea').style.display = 'none';
+    document.getElementById('pr_generateBtn').disabled = false;
+  }
+}
+function pr_previewPressRelease() { alert('미리보기 기능은 서버 배포 후 사용 가능합니다.'); }
+function pr_downloadDocx() { alert('DOCX 다운로드 기능은 서버 배포 후 사용 가능합니다.'); }
+
+/* ══════════════════════════════════
+   패널 4: 도서 기획 JS (a 파일)
+══════════════════════════════════ */
+function toggleSingle(el, groupId) {
+  document.querySelectorAll(`#${groupId} .chip`).forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+}
+
+let plan_preliminary = '';
+let plan_selectedDir = 0;
+let plan_chatHistory = [];
+
+async function runPreliminary() {
+  const genre = document.querySelector('#plan-genre .chip.on')?.textContent || '';
+  const author = document.getElementById('plan-author').value.trim();
+  const concept = document.getElementById('plan-concept').value.trim();
+  const intent = document.getElementById('plan-intent').value.trim();
+  if (!concept) { alert('소재 / 핵심 내용을 입력해주세요.'); return; }
+  document.getElementById('prelim-btn').disabled = true;
+  document.getElementById('prelim-btn').textContent = '분석 중...';
+  try {
+    const prompt = `당신은 출판사 더 북맨 1본부의 기획 편집자입니다.
+아래 기획안 초안을 분석하여 3가지 방향을 제안하세요.
+[분야] ${genre} / [저자] ${author||'미정'} / [소재] ${concept} / [기획의도] ${intent||'미입력'}
+각 방향을 "방향 1:", "방향 2:", "방향 3:" 으로 시작하여 제안하세요. 각 방향은 2~3문장으로 핵심만 서술하세요.`;
+    const res = await fetch(SERVER + '/analyze', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    if (!res.ok) throw new Error('서버 오류: ' + res.status);
+    const data = await res.json();
+    plan_preliminary = data.result;
+    document.getElementById('prelim-text').textContent = plan_preliminary;
+    const dir1 = plan_preliminary.match(/방향 1:([^\n방]+)/)?.[1]?.trim() || '방향 1';
+    const dir2 = plan_preliminary.match(/방향 2:([^\n방]+)/)?.[1]?.trim() || '방향 2';
+    const dir3 = plan_preliminary.match(/방향 3:([^\n방]+)/)?.[1]?.trim() || '방향 3';
+    document.getElementById('dir-btn-1').textContent = dir1.slice(0,20) + (dir1.length>20?'...':'');
+    document.getElementById('dir-btn-2').textContent = dir2.slice(0,20) + (dir2.length>20?'...':'');
+    document.getElementById('dir-btn-3').textContent = dir3.slice(0,20) + (dir3.length>20?'...':'');
+    document.getElementById('dir-select-wrap').style.display = 'block';
+    document.getElementById('prelim-result').style.display = 'block';
+  } catch (err) { alert('오류가 발생했습니다.\n' + err.message); }
+  finally { document.getElementById('prelim-btn').disabled=false; document.getElementById('prelim-btn').textContent='진행 →'; }
+}
+function selectDirection(dir) {
+  plan_selectedDir = dir;
+  document.querySelectorAll('.dir-btn').forEach((b,i) => b.classList.toggle('active', i+1===dir));
+  document.getElementById('chat-dir-label').textContent = `방향 ${dir} 선택됨 — AI와 기획 발전`;
+  document.getElementById('plan-chat').style.display = 'block';
+  plan_chatHistory = [{ role: 'user', content: `${plan_preliminary}\n\n방향 ${dir}을 선택했습니다. 이 방향으로 기획을 구체화해주세요.` }];
+  document.getElementById('chat-messages').innerHTML = '<div class="chat-msg ai"><div class="bubble">방향이 선택되었습니다. 구체화하고 싶은 내용을 자유롭게 입력해주세요.</div></div>';
+}
+function resetDirection() {
+  plan_selectedDir = 0;
+  document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('plan-chat').style.display = 'none';
+  plan_chatHistory = [];
+}
+async function sendChat() {
+  const input = document.getElementById('chat-input').value.trim();
+  if (!input) return;
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML += `<div class="chat-msg user"><div class="bubble">${input}</div></div>`;
+  document.getElementById('chat-input').value = '';
+  document.getElementById('chat-send-btn').disabled = true;
+  plan_chatHistory.push({ role: 'user', content: input });
+  try {
+    const res = await fetch(SERVER + '/analyze', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: plan_chatHistory.map(m=>`${m.role}: ${m.content}`).join('\n\n') })
+    });
+    if (!res.ok) throw new Error('서버 오류');
+    const data = await res.json();
+    plan_chatHistory.push({ role: 'assistant', content: data.result });
+    msgs.innerHTML += `<div class="chat-msg ai"><div class="bubble">${data.result.replace(/\n/g,'<br>')}</div></div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  } catch (err) { alert('오류: ' + err.message); }
+  finally { document.getElementById('chat-send-btn').disabled = false; }
+}
+async function runAgent(panelIdx) {
+  const genre = document.querySelector('#plan-genre .chip.on')?.textContent || '';
+  const author = document.getElementById('plan-author').value.trim();
+  const concept = document.getElementById('plan-concept').value.trim();
+  const wrap = document.getElementById(`out-${panelIdx}`);
+  wrap.style.display = 'block';
+  document.getElementById(`oc-${panelIdx}-text`).textContent = '생성 중...';
+  try {
+    const prompt = `당신은 출판사 더 북맨 1본부의 기획 편집자입니다.
+아래 정보를 바탕으로 내부 논의용 기획안을 작성하세요.
+[분야] ${genre} / [저자] ${author||'미정'} / [소재] ${concept} / [선택 방향] ${plan_selectedDir}
+기획안 / 타깃 독자 / 벤치마크 도서 3종 / 후보 제목 5개 를 각각 작성하세요.
+각 섹션을 <기획안>, <타깃독자>, <벤치마크>, <제목후보> 태그로 구분하세요.`;
+    const res = await fetch(SERVER + '/analyze', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    if (!res.ok) throw new Error('서버 오류');
+    const data = await res.json();
+    const sections = { 0: '기획안', 1: '타깃독자', 2: '벤치마크', 3: '제목후보' };
+    const getText = (tag) => data.result.match(new RegExp(`<${tag}>([\\s\\S]*?)<\/${tag}>`))?.[1]?.trim() || data.result;
+    document.getElementById(`oc-${panelIdx}-text`).setAttribute('data-sections', JSON.stringify([getText('기획안'),getText('타깃독자'),getText('벤치마크'),getText('제목후보')]));
+    document.getElementById(`oc-${panelIdx}-text`).textContent = getText('기획안');
+  } catch (err) {
+    document.getElementById(`oc-${panelIdx}-text`).textContent = '오류가 발생했습니다: ' + err.message;
+  }
+}
+function switchOtab(panelIdx, tabIdx) {
+  const wrap = document.getElementById(`out-${panelIdx}`);
+  wrap.querySelectorAll('.otab').forEach((t,i) => t.classList.toggle('on', i===tabIdx));
+  const el = document.getElementById(`oc-${panelIdx}-text`);
+  try {
+    const sections = JSON.parse(el.getAttribute('data-sections') || '[]');
+    el.textContent = sections[tabIdx] || '';
+  } catch { }
+}
+function copyOut(id, btn) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.querySelector('span')?.textContent || el.textContent || '').then(()=>showToast());
+}
+function copyPrelim(btn) { navigator.clipboard.writeText(plan_preliminary).then(()=>showToast()); }
+async function runExternalPlan() {
+  const genre = document.querySelector('#plan-genre .chip.on')?.textContent || '';
+  const concept = document.getElementById('plan-concept').value.trim();
+  document.getElementById('out-5-ext').style.display = 'block';
+  document.getElementById('oc-5-ext-text').value = '생성 중...';
+  try {
+    const prompt = `출판사 더 북맨 1본부의 외부 전달용 기획안 초안을 작성하세요.
+[분야] ${genre} / [소재] ${concept}
+저자에게 보낼 수 있는 정중하고 전문적인 기획안 초안을 작성하세요.`;
+    const res = await fetch(SERVER + '/analyze', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    if (!res.ok) throw new Error('서버 오류');
+    const data = await res.json();
+    document.getElementById('oc-5-ext-text').value = data.result;
+  } catch (err) { document.getElementById('oc-5-ext-text').value = '오류: ' + err.message; }
+}
+function copyExtPlan(btn) { navigator.clipboard.writeText(document.getElementById('oc-5-ext-text').value).then(()=>showToast()); }
+
+/* ══════════════════════════════════
+   편집 일정 초기화
+══════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => { initColorPicker(); });
+
+function parseKorDate(str){
+  const s=str.replace(/\s/g,'');
+  const m=s.match(/^(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})\.?$/);
+  if(!m) return null;
+  const d=new Date(+m[1],+m[2]-1,+m[3]);
+  return isNaN(d)?null:d;
+}
+function formatKorDate(date){
+  const days=['일','월','화','수','목','금','토'];
+  return `${date.getFullYear()}. ${date.getMonth()+1}. ${date.getDate()} (${days[date.getDay()]})`;
+}
+function addDays(date,n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
+function formatIcsDate(d){ return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`; }
+function adjustForWeekend(date){ const d=new Date(date); const day=d.getDay(); if(day===0) d.setDate(d.getDate()-2); else if(day===6) d.setDate(d.getDate()-1); return d; }
+
+const BOOK_COLORS=['#FF3B30','#FF9500','#FFCC00','#34C759','#00C7BE','#007AFF','#5856D6','#FF2D55','#AF52DE','#32ADE6'];
+const MILESTONE_DEFS=[
+  {name:'본문 발주',diff:-58},{name:'표지 발주',diff:-51},{name:'발주서',diff:-16},
+  {name:'최종교·보도자료',diff:-14},{name:'마감',diff:-12},{name:'예판',diff:-10,allowWeekend:true},
+  {name:'감리',diff:-9},{name:'출간',diff:0,isPub:true},
+];
+
+let books=[], selectedColor=BOOK_COLORS[0], slackWebhook='', currentBookView='book', selectedBookId=null, selectedEditorName=null;
+const dpState={year:null,month:null,inputEl:null};
+
+function initColorPicker(){
+  const wrap=document.getElementById('sch-color-picker');
+  if(!wrap||wrap.dataset.init) return;
+  wrap.dataset.init='1';
+  BOOK_COLORS.forEach((c,i)=>{
+    const btn=document.createElement('button'); btn.type='button';
+    btn.style.cssText=`width:26px;height:26px;border-radius:50%;background:${c};border:3px solid ${i===0?'#fff':'transparent'};cursor:pointer;outline:${i===0?'2px solid '+c:'none'};transition:all .15s;flex-shrink:0`;
+    btn.onclick=()=>{ selectedColor=c; wrap.querySelectorAll('button').forEach(b=>{b.style.border='3px solid transparent';b.style.outline='none';}); btn.style.border='3px solid #fff'; btn.style.outline='2px solid '+c; };
+    wrap.appendChild(btn);
+  });
+}
+function openDatePicker(inputEl){
+  dpState.inputEl=inputEl;
+  const existing=document.getElementById('dp-popup');
+  if(existing){existing.remove();document.removeEventListener('click',dpOutsideClick);return;}
+  const now=new Date(); const cur=parseKorDate(inputEl.value);
+  dpState.year=cur?cur.getFullYear():now.getFullYear(); dpState.month=cur?cur.getMonth():now.getMonth();
+  const popup=document.createElement('div'); popup.id='dp-popup';
+  popup.addEventListener('click',e=>e.stopPropagation());
+  document.body.appendChild(popup); dpRender();
+  const rect=inputEl.getBoundingClientRect(); popup.style.top=(rect.bottom+4)+'px'; popup.style.left=rect.left+'px';
+  setTimeout(()=>document.addEventListener('click',dpOutsideClick),0);
+}
+function dpOutsideClick(e){const p=document.getElementById('dp-popup');if(p&&!p.contains(e.target)&&e.target!==dpState.inputEl)closeDatePicker();}
+function closeDatePicker(){const p=document.getElementById('dp-popup');if(p)p.remove();document.removeEventListener('click',dpOutsideClick);}
+function dpNav(dir){dpState.month+=dir;if(dpState.month>11){dpState.month=0;dpState.year++;}if(dpState.month<0){dpState.month=11;dpState.year--;}dpRender();}
+function dpPick(year,month,day){if(dpState.inputEl)dpState.inputEl.value=`${year}. ${month+1}. ${day}`;closeDatePicker();}
+function dpRender(){
+  const popup=document.getElementById('dp-popup');if(!popup)return;
+  const{year,month}=dpState; const today=new Date();today.setHours(0,0,0,0);
+  const MO=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const DOW=['일','월','화','수','목','금','토'];
+  const firstDow=new Date(year,month,1).getDay();
+  const daysCount=new Date(year,month+1,0).getDate();
+  const prevDays=new Date(year,month,0).getDate();
+  const header=DOW.map((d,i)=>`<div class="dp-dow${i===0?' sun':i===6?' sat':''}">${d}</div>`).join('');
+  let cells='';
+  for(let i=0;i<firstDow;i++) cells+=`<div class="dp-day dim">${prevDays-firstDow+1+i}</div>`;
+  for(let day=1;day<=daysCount;day++){
+    const dt=new Date(year,month,day);dt.setHours(0,0,0,0);
+    const dow=dt.getDay();const isToday=dt.getTime()===today.getTime();
+    let cls='dp-day';if(isToday)cls+=' today';else if(dow===0)cls+=' sun';else if(dow===6)cls+=' sat';
+    cells+=`<div class="${cls}" onclick="dpPick(${year},${month},${day})">${day}</div>`;
+  }
+  const total=Math.ceil((firstDow+daysCount)/7)*7;
+  for(let i=1;i<=total-firstDow-daysCount;i++) cells+=`<div class="dp-day dim">${i}</div>`;
+  popup.innerHTML=`<div class="dp-nav"><button class="dp-nav-btn" onclick="dpNav(-1)">‹</button><span class="dp-title">${year}년 ${MO[month]}</span><button class="dp-nav-btn" onclick="dpNav(1)">›</button></div><div class="dp-grid">${header}${cells}</div>`;
+}
+function addBook(){
+  const title=document.getElementById('sch-new-title').value.trim();
+  const author=document.getElementById('sch-new-author').value.trim();
+  const pubStr=document.getElementById('sch-new-pubdate').value.trim();
+  const editor=document.getElementById('sch-new-editor').value.trim();
+  if(!title){alert('도서 제목을 입력하세요.');return;}
+  const pub=parseKorDate(pubStr);
+  if(!pub){alert('출간 예정일 형식을 확인하세요.\n예: 2026. 7. 15');return;}
+  const book={id:Date.now(),title,author,pub,editor,color:selectedColor,tab:'timeline',
+    milestones:MILESTONE_DEFS.map(m=>({name:m.name,diff:m.diff,isPub:!!m.isPub,isCore:true,
+      date:m.diff===0?new Date(pub):m.allowWeekend?addDays(pub,m.diff):adjustForWeekend(addDays(pub,m.diff))}))};
+  books.push(book);selectedBookId=book.id;
+  ['sch-new-title','sch-new-author','sch-new-pubdate','sch-new-editor'].forEach(id=>document.getElementById(id).value='');
+  renderBooks();
+}
+function switchView(v){currentBookView=v;document.getElementById('vt-book').classList.toggle('active',v==='book');document.getElementById('vt-editor').classList.toggle('active',v==='editor');renderBooks();}
+function removeBook(id){books=books.filter(b=>b.id!==id);if(selectedBookId===id)selectedBookId=books.length?books[0].id:null;renderBooks();}
+function switchBookTab(id,tab){const book=books.find(b=>b.id===id);if(book){book.tab=tab;renderBooks();}}
+function selectBook(id){selectedBookId=id;renderBooks();}
+function renderBooks(){
+  const wrap=document.getElementById('book-cards');
+  if(!books.length){wrap.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:36px 0">일정을 추가하면 여기에 카드로 표시됩니다.</div>';return;}
+  if(currentBookView==='editor'){renderByEditor(wrap);return;}
+  if(!selectedBookId||!books.find(b=>b.id===selectedBookId))selectedBookId=books[0].id;
+  const book=books.find(b=>b.id===selectedBookId);
+  const selTabs=`<div class="book-sel-tabs">${books.map(b=>{const isActive=b.id===selectedBookId;return`<button class="book-sel-tab${isActive?' active':''}" ${isActive?`style="background:${b.color};border-color:${b.color}"`:`style="border-color:${b.color}44"`} onclick="selectBook(${b.id})"><span class="book-sel-dot" style="background:${b.color}"></span><span class="book-sel-label">${b.title}</span></button>`;}).join('')}</div>`;
+  const pubStr=formatKorDate(book.pub).split('(')[0].trim();
+  const slackBtn=slackWebhook?`<button class="dl-btn" onclick="sendSlack(${book.id})" style="font-size:11px;padding:5px 10px">Slack</button>`:'';
+  const tabBar=`<div class="book-tab-bar"><button class="book-tab${book.tab==='timeline'?' active':''}" onclick="switchBookTab(${book.id},'timeline')">타임라인</button><button class="book-tab${book.tab==='calendar'?' active':''}" onclick="switchBookTab(${book.id},'calendar')">캘린더</button></div>`;
+  wrap.innerHTML=selTabs+`<div class="book-card"><div class="book-card-header"><div class="book-color-bar" style="background:${book.color}"></div><div class="book-card-meta"><div class="book-card-title">${book.title}</div><div class="book-card-author">${book.author||'저자 미정'}${book.editor?' · '+book.editor:''}</div></div><div class="book-card-pubdate">${pubStr}</div><div class="book-card-actions">${slackBtn}<button onclick="removeBook(${book.id})" style="background:none;border:none;cursor:pointer;font-size:15px;color:var(--text-muted);padding:4px 6px">✕</button></div></div>${tabBar}<div class="book-card-body">${book.tab==='timeline'?renderTimeline(book):renderCalendar(book)}</div></div>`;
+}
+function selectEditor(name){selectedEditorName=name;const eb=books.filter(b=>(b.editor||'담당자 미지정')===name);if(eb.length)selectedBookId=eb[0].id;renderBooks();}
+function renderByEditor(wrap){
+  const groups={};books.forEach(b=>{const key=b.editor||'담당자 미지정';if(!groups[key])groups[key]=[];groups[key].push(b);});
+  const editorKeys=Object.keys(groups);const editorColors={};editorKeys.forEach((k,i)=>{editorColors[k]=BOOK_COLORS[i%BOOK_COLORS.length];});
+  if(!selectedEditorName||!groups[selectedEditorName])selectedEditorName=editorKeys[0]||null;
+  const editorTabs=`<div class="book-sel-tabs">${editorKeys.map(name=>{const isActive=name===selectedEditorName;const color=editorColors[name];return`<button class="book-sel-tab${isActive?' active':''}" ${isActive?`style="background:${color};border-color:${color}"`:`style="border-color:${color}44"`} onclick="selectEditor('${name.replace(/'/g,"\\'")}')"><span class="book-sel-dot" style="background:${color}"></span><span class="book-sel-label">${name}</span></button>`;}).join('')}</div>`;
+  if(!selectedEditorName){wrap.innerHTML=editorTabs;return;}
+  const editorBooks=groups[selectedEditorName];
+  if(!selectedBookId||!editorBooks.find(b=>b.id===selectedBookId))selectedBookId=editorBooks[0].id;
+  const book=editorBooks.find(b=>b.id===selectedBookId)||editorBooks[0];
+  const bookTabs=editorBooks.length>1?`<div class="book-sel-tabs" style="margin-top:2px;margin-bottom:14px">${editorBooks.map(b=>{const isActive=b.id===selectedBookId;return`<button class="book-sel-tab${isActive?' active':''}" ${isActive?`style="background:${b.color};border-color:${b.color}"`:`style="border-color:${b.color}44"`} onclick="selectBook(${b.id})"><span class="book-sel-dot" style="background:${b.color}"></span><span class="book-sel-label">${b.title}</span></button>`;}).join('')}</div>`:'';
+  const pubStr=formatKorDate(book.pub).split('(')[0].trim();
+  const slackBtn=slackWebhook?`<button class="dl-btn" onclick="sendSlack(${book.id})" style="font-size:11px;padding:5px 10px">Slack</button>`:'';
+  const tabBar=`<div class="book-tab-bar"><button class="book-tab${book.tab==='timeline'?' active':''}" onclick="switchBookTab(${book.id},'timeline')">타임라인</button><button class="book-tab${book.tab==='calendar'?' active':''}" onclick="switchBookTab(${book.id},'calendar')">캘린더</button></div>`;
+  wrap.innerHTML=editorTabs+bookTabs+`<div class="book-card"><div class="book-card-header"><div class="book-color-bar" style="background:${book.color}"></div><div class="book-card-meta"><div class="book-card-title">${book.title}</div><div class="book-card-author">${book.author||'저자 미정'}${book.editor?' · '+book.editor:''}</div></div><div class="book-card-pubdate">${pubStr}</div><div class="book-card-actions">${slackBtn}<button onclick="removeBook(${book.id})" style="background:none;border:none;cursor:pointer;font-size:15px;color:var(--text-muted);padding:4px 6px">✕</button></div></div>${tabBar}<div class="book-card-body">${book.tab==='timeline'?renderTimeline(book):renderCalendar(book)}</div></div>`;
+}
+function renderTimeline(book){
+  const today=new Date();today.setHours(0,0,0,0);
+  return`<div class="tl-wrap"><div class="tl-line"></div>${book.milestones.map(m=>{const d=new Date(m.date);d.setHours(0,0,0,0);const isPast=d<today;const isToday=d.getTime()===today.getTime();const dotCls=m.isPub?'pub':isToday?'today-dot':isPast?'past':'';const diff=Math.round((d-today)/(1000*60*60*24));const diffLabel=diff===0?'오늘':diff<0?`${Math.abs(diff)}일 전`:`D-${diff}`;return`<div class="tl-item"><div class="tl-dot${dotCls?' '+dotCls:''}"></div><div class="tl-info"><div class="tl-name">${m.name}</div><div class="tl-date">${formatKorDate(d)}</div></div><div class="tl-d">${diffLabel}</div></div>`;}).join('')}</div>`;
+}
+function getBookCalPage(book){if(book.calYear!==undefined)return{year:book.calYear,month:book.calMonth};const dates=book.milestones.map(m=>new Date(m.date)).sort((a,b)=>a-b);if(dates.length)return{year:dates[0].getFullYear(),month:dates[0].getMonth()};const now=new Date();return{year:now.getFullYear(),month:now.getMonth()};}
+function setCalPage(bookId,year,month){const book=books.find(b=>b.id===bookId);if(!book)return;book.calYear=year;book.calMonth=month;renderBooks();}
+function navCalYear(bookId,dir){const book=books.find(b=>b.id===bookId);if(!book)return;const{year,month}=getBookCalPage(book);book.calYear=year+dir;book.calMonth=month;renderBooks();}
+function renderCalendar(book){
+  const today=new Date();today.setHours(0,0,0,0);
+  const MONTH_KO=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const DOW=['일','월','화','수','목','금','토'];
+  const{year,month}=getBookCalPage(book);
+  const firstDow=new Date(year,month,1).getDay();const daysCount=new Date(year,month+1,0).getDate();const prevMonthDays=new Date(year,month,0).getDate();const sd=book.selectedDay;
+  const evMap={};book.milestones.forEach((m,origIdx)=>{const d=new Date(m.date);if(d.getFullYear()===year&&d.getMonth()===month){const k=d.getDate();if(!evMap[k])evMap[k]=[];evMap[k].push({m,origIdx});}});
+  const header=DOW.map((d,i)=>`<div class="big-cal-dow${i===0?' sun':i===6?' sat':''}">${d}</div>`).join('');
+  const totalCells=Math.ceil((firstDow+daysCount)/7)*7;let cells='';
+  for(let i=0;i<firstDow;i++)cells+=`<div class="big-cal-cell other-month"><span class="big-cal-day-num dim">${prevMonthDays-firstDow+1+i}</span></div>`;
+  for(let day=1;day<=daysCount;day++){
+    const dt=new Date(year,month,day);dt.setHours(0,0,0,0);const dow=dt.getDay();const isToday=dt.getTime()===today.getTime();const entries=evMap[day]||[];const isSel=sd&&sd.year===year&&sd.month===month&&sd.day===day;
+    let cellCls='big-cal-cell';if(isSel)cellCls+=' selected';if(isToday)cellCls+=' today-bg';else if(entries.length)cellCls+=' has-events';
+    let numCls='big-cal-day-num';if(isToday)numCls+=' today-num';else if(dow===0)numCls+=' sun-num';else if(dow===6)numCls+=' sat-num';
+    cells+=`<div class="${cellCls}" onclick="selectCalDay(${book.id},${year},${month},${day})"><span class="${numCls}">${day}</span>${entries.map(({m})=>`<div class="${m.isPub?'big-cal-ev pub':m.isCore?'big-cal-ev core':'big-cal-ev'}">${m.name}</div>`).join('')}</div>`;
+  }
+  for(let i=1;i<=totalCells-firstDow-daysCount;i++)cells+=`<div class="big-cal-cell other-month"><span class="big-cal-day-num dim">${i}</span></div>`;
+  let editPanel='';
+  if(sd&&sd.year===year&&sd.month===month){
+    const dayEntries=evMap[sd.day]||[];
+    const rowsHtml=dayEntries.length?dayEntries.map(({m,origIdx})=>`<div class="cal-ev-edit-row"><input class="cal-ev-name-inp" value="${m.name.replace(/"/g,'&quot;')}" onblur="updateMilestoneName(${book.id},${origIdx},this.value)" onkeydown="if(event.key==='Enter')this.blur()"><input class="cal-ev-date-inp" value="${new Date(m.date).getFullYear()}. ${new Date(m.date).getMonth()+1}. ${new Date(m.date).getDate()}" onblur="updateMilestoneDateAndRender(${book.id},${origIdx},this.value)" onkeydown="if(event.key==='Enter')this.blur()"><button class="cal-ev-del-btn" onclick="deleteMilestone(${book.id},${origIdx})">✕</button></div>`).join(''):`<div class="cal-edit-empty">이 날에 등록된 일정이 없습니다.</div>`;
+    editPanel=`<div class="cal-edit-panel"><div class="cal-edit-title"><span style="background:${book.color};width:8px;height:8px;border-radius:50%;display:inline-block"></span>${sd.year}년 ${sd.month+1}월 ${sd.day}일 일정 편집</div>${rowsHtml}<button class="cal-ev-add-btn" onclick="addMilestoneOnDate(${book.id},${sd.year},${sd.month},${sd.day})">+ 이 날 일정 추가</button></div>`;
+  }
+  const tabs=MONTH_KO.map((mk,mi)=>`<button class="big-cal-tab${mi===month?' active':''}" onclick="setCalPage(${book.id},${year},${mi})">${mk}</button>`).join('');
+  return`<div class="big-cal-wrap"><div class="big-cal-grid">${header}${cells}</div>${editPanel}<div class="big-cal-footer"><button class="big-cal-yr-btn" onclick="navCalYear(${book.id},-1)">‹</button><span class="big-cal-yr-label">${year}년</span><button class="big-cal-yr-btn" onclick="navCalYear(${book.id},1)">›</button><div class="big-cal-tabs">${tabs}</div></div></div>`;
+}
+function selectCalDay(bookId,year,month,day){const book=books.find(b=>b.id===bookId);if(!book)return;const sd=book.selectedDay;book.selectedDay=(sd&&sd.year===year&&sd.month===month&&sd.day===day)?null:{year,month,day};renderBooks();}
+function updateMilestoneName(bookId,idx,val){const book=books.find(b=>b.id===bookId);if(book&&book.milestones[idx])book.milestones[idx].name=val.trim()||book.milestones[idx].name;}
+function updateMilestoneDateAndRender(bookId,idx,val){const book=books.find(b=>b.id===bookId);if(!book||!book.milestones[idx])return;const d=parseKorDate(val);if(!d)return;book.milestones[idx].date=d;if(book.selectedDay)book.selectedDay={year:d.getFullYear(),month:d.getMonth(),day:d.getDate()};renderBooks();}
+function deleteMilestone(bookId,idx){const book=books.find(b=>b.id===bookId);if(!book)return;book.milestones.splice(idx,1);renderBooks();}
+function addMilestoneOnDate(bookId,year,month,day){const book=books.find(b=>b.id===bookId);if(!book)return;book.milestones.push({name:'새 일정',date:new Date(year,month,day),isPub:false,isCore:false});renderBooks();}
+function downloadBookCalendar(id){const book=books.find(b=>b.id===id);if(!book)return;const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//TheBookman//EditSchedule//KO','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:'+book.title+' 편집 일정'];book.milestones.forEach(m=>{const next=addDays(m.date,1);lines.push('BEGIN:VEVENT','DTSTART;VALUE=DATE:'+formatIcsDate(m.date),'DTEND;VALUE=DATE:'+formatIcsDate(next),'SUMMARY:['+book.title+'] '+m.name,'END:VEVENT');});lines.push('END:VCALENDAR');const blob=new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`편집일정_${book.title}.ics`;a.click();}
+function saveSlackWebhook(){const val=document.getElementById('slack-webhook-input').value.trim();if(!val){alert('Slack 웹훅 URL을 입력하세요.');return;}slackWebhook=val;alert('저장되었습니다.');renderBooks();}
+async function sendSlack(id){const book=books.find(b=>b.id===id);if(!book||!slackWebhook)return;const today=new Date();today.setHours(0,0,0,0);const lines=[`*[${book.title}] 편집 일정표*`,`저자: ${book.author||'미정'} | 출간: ${formatKorDate(book.pub)}`,''];book.milestones.forEach(m=>{const d=new Date(m.date);d.setHours(0,0,0,0);const diff=Math.round((d-today)/(1000*60*60*24));const label=diff===0?'오늘':diff<0?`${Math.abs(diff)}일 전`:`D-${diff}`;lines.push(`• ${m.name}: ${formatKorDate(d)} (${label})`);});try{const res=await fetch(slackWebhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:lines.join('\n')})});if(res.ok)alert('Slack 전송 완료!');else alert('Slack 전송 실패.');}catch(e){alert('Slack 전송 오류: '+e.message);}}
+</script>
+
+<script>
+/* ══════════════════════════════════
+   교정교열 JS
+══════════════════════════════════ */
+// ── State ──────────────────────────────────────────────────────────
+let manuscriptContent = '';
+let originalManuscript = '';
+let finalCorrectedText = '';
+
+// ── Init ───────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  loadApiKeys();
+  setupDragDrop();
+  document.getElementById('manuscriptText').addEventListener('input', function () {
+    manuscriptContent = this.value;
+    document.getElementById('charCount').textContent = this.value.length.toLocaleString() + '자';
+  });
+});
+
+// ── API Keys ───────────────────────────────────────────────────────
+function loadApiKeys() {
+  const ck = localStorage.getItem('claude_api_key');
+  const gk = localStorage.getItem('gemini_api_key');
+  if (ck) { document.getElementById('claudeApiKey').value = ck; setKeyStatus('claudeKeyStatus', true); }
+  if (gk) { document.getElementById('geminiApiKey').value = gk; setKeyStatus('geminiKeyStatus', true); }
+}
+
+function setKeyStatus(id, saved) {
+  const el = document.getElementById(id);
+  el.textContent = saved ? '✓ 저장된 키 사용 중' : '저장된 키 없음';
+  el.className = 'key-status ' + (saved ? 'saved' : 'not-saved');
+}
+
+function saveApiKeys() {
+  const ck = document.getElementById('claudeApiKey').value.trim();
+  const gk = document.getElementById('geminiApiKey').value.trim();
+  if (!ck && !gk) { alert('저장할 API 키를 입력해주세요.'); return; }
+  if (ck) { localStorage.setItem('claude_api_key', ck); setKeyStatus('claudeKeyStatus', true); }
+  if (gk) { localStorage.setItem('gemini_api_key', gk); setKeyStatus('geminiKeyStatus', true); }
+  alert('API 키가 저장되었습니다.');
+}
+
+function clearApiKeys() {
+  if (!confirm('저장된 API 키를 모두 삭제하시겠습니까?')) return;
+  ['claude_api_key', 'gemini_api_key'].forEach(k => localStorage.removeItem(k));
+  document.getElementById('claudeApiKey').value = '';
+  document.getElementById('geminiApiKey').value = '';
+  setKeyStatus('claudeKeyStatus', false);
+  setKeyStatus('geminiKeyStatus', false);
+}
+
+// ── Tabs ───────────────────────────────────────────────────────────
+function gyo_switchTab(tab) {
+  document.querySelectorAll('#panel-1 .tab-btn').forEach((b, i) =>
+    b.classList.toggle('active', (tab === 'upload') === (i === 0)));
+  document.getElementById('uploadTab').classList.toggle('active', tab === 'upload');
+  document.getElementById('textTab').classList.toggle('active', tab === 'text');
+}
+
+// ── File Upload (mammoth.js) ────────────────────────────────────────
+function setupDragDrop() {
+  const zone = document.getElementById('dropZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f) processDocxFile(f);
+  });
+}
+
+function handleFileUpload(e) {
+  const f = e.target.files[0];
+  if (f) processFile(f);
+}
+
+async function processFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext !== 'docx' && ext !== 'pdf') { alert('PDF 또는 DOCX 파일만 지원합니다.'); return; }
+  document.getElementById('fileName').textContent = '읽는 중...';
+  try {
+    if (ext === 'docx') {
+      const buf = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer: buf });
+      manuscriptContent = result.value;
+    } else {
+      // PDF 처리
+      const buf = await file.arrayBuffer();
+      const arr = new Uint8Array(buf);
+      const pdf = await pdfjsLib.getDocument({ data: arr }).promise;
+      let txt = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        txt += content.items.map(item => item.str).join(' ') + '\n';
+      }
+      manuscriptContent = txt.trim();
+    }
+    document.getElementById('fileName').textContent =
+      `✓ ${file.name}  (${manuscriptContent.length.toLocaleString()}자)`;
+  } catch (err) {
+    document.getElementById('fileName').textContent = '파일 읽기 실패: ' + err.message;
+  }
+}
+
+// 드래그 앤 드롭 PDF 지원
+async function processDocxFile(file) {
+  await processFile(file);
+}
+
+// ── Editor Card UI ─────────────────────────────────────────────────
+function toggleEditor(id) {
+  const cb = document.getElementById(id);
+  cb.checked = !cb.checked;
+  syncCard(id);
+  updateSettings();
+}
+
+function syncCard(id) {
+  document.getElementById('card-' + id).classList.toggle('selected', document.getElementById(id).checked);
+}
+
+function updateSettings() {
+  ['editor1', 'editor2', 'editor3', 'yakul'].forEach(syncCard);
+  document.getElementById('editor2Settings').classList.toggle('hidden', !document.getElementById('editor2').checked);
+  document.getElementById('editor3Settings').classList.toggle('hidden', !document.getElementById('editor3').checked);
+  document.getElementById('yakulSettings').classList.toggle('hidden', !document.getElementById('yakul').checked);
+}
+
+function toggleCustomAuxVerb() {
+  document.getElementById('customAuxVerbArea').style.display =
+    document.getElementById('auxVerbRule').value === 'custom' ? 'block' : 'none';
+}
+
+// ── System Prompts ─────────────────────────────────────────────────
+function promptEditor1() {
+  return `당신은 출판 원고 팩트체크 전문 편집자입니다.
+
+웹 검색을 적극 활용하여 다음 사항을 꼼꼼히 확인하고 오류를 수정하세요:
+- 날짜, 연도, 수치, 통계의 정확성
+- 인명, 지명, 기관명의 정확한 표기
+- 역사적 사실, 과학적 내용의 정확성
+- 인용문과 출처의 정확성
+- 논리적 오류나 모순된 서술
+
+수정 원칙:
+- 확인된 오류는 올바른 내용으로 수정
+- 불확실한 내용에는 [확인 필요] 태그 삽입
+- 원문의 문체와 흐름 유지
+
+수정된 원고 전문만 반환하세요. 설명·주석·서두 없이 원고 텍스트만 출력하세요.`;
+}
+
+function promptEditor2() {
+  const mode = document.querySelector('input[name="editor2Mode"]:checked')?.value || 'simple';
+  const prompts = {
+    simple:
+`당신은 출판 원고 편집자입니다.
+
+**교정 강도: 단순 교정**
+명백한 오류만 최소한으로 수정합니다. 작가의 문체와 표현을 최대한 보존하세요.
+- 명확히 잘못된 어휘 선택만 수정
+- 단순 반복 표현만 수정
+- 문법적으로 명백히 틀린 문장만 수정
+- 그 외 모든 표현은 원문 그대로 유지
+
+수정된 원고 전문만 반환하세요. 설명·주석·서두 없이 원고 텍스트만 출력하세요.`,
+
+    proofread:
+`당신은 출판 원고 교열 전문 편집자입니다.
+
+**교정 강도: 교열 포함**
+맞춤법·문법 오류를 교정하고 어색한 표현을 개선합니다. 문장 구조와 작가 문체는 보존하세요.
+- 맞춤법·표준어 오류 교정
+- 어색한 어휘 선택 개선
+- 중복·불필요한 표현 수정
+- 문단 구성 최소한 개선
+- 작가의 고유 문체 보존
+
+수정된 원고 전문만 반환하세요. 설명·주석·서두 없이 원고 텍스트만 출력하세요.`,
+
+    polish:
+`당신은 출판 원고 윤문 전문 편집자입니다.
+
+**교정 강도: 문장 다듬기**
+문장의 흐름·어휘·구조를 전면적으로 개선하여 독자 친화적 텍스트로 만드세요.
+- 문장 리듬과 흐름 전면 개선
+- 어휘 선택 고급화 (한자어 남용, 구어체 개선)
+- 지나치게 긴 문장 분리 / 짧은 문장 통합
+- 단락 간 연결어·전환 개선
+- 일본식 표현, 영어식 직역 투 교정
+- 작가의 핵심 메시지와 의도 보존
+
+수정된 원고 전문만 반환하세요. 설명·주석·서두 없이 원고 텍스트만 출력하세요.`,
+
+    translation:
+`당신은 번역투 탐지 및 교정 전문 편집자입니다.
+
+**교정 강도: 번역투 감지**
+텍스트에서 번역투(일본어·영어 직역 투) 표현을 탐지하고 자연스러운 한국어로 교체하세요.
+탐지·수정 대상:
+- 일본어 번역투: ~적(的), ~화(化), ~성(性), ~에 있어서, ~을 통해서 남용, ~의 ~의 ~의 연속, 형식명사 남용 등
+- 영어 번역투: 수동태 남용 (~되어지다, ~에 의해), 접속사 직역 (그리고로 문장 시작), 관계절 직역 등
+- 어색한 조사 사용 (~에 의해, ~에 의한 과다 사용)
+- 의역이 자연스러운 직역 표현
+- 대체 가능한 한국어가 있는 외래어 남용
+
+수정된 원고 전문만 반환하세요. 설명·주석·서두 없이 원고 텍스트만 출력하세요.`
+  };
+  return prompts[mode];
+}
+
+function promptEditor3() {
+  const auxVerb = document.getElementById('auxVerbRule').value;
+  const techTerm = document.getElementById('technicalTermRule').value;
+  const goRule = document.getElementById('goConnectorRule').checked;
+  const vvRule = document.getElementById('verbVerbRule').checked;
+  const custom = document.getElementById('customAuxVerbRule').value;
+
+  const auxText = {
+    company: '보조용언 띄어쓰기: 사내 규칙 (본용언+보조용언이 6음절 이하이면 붙여쓰기 허용, 7음절 이상은 반드시 띄어쓰기)',
+    nikl: '보조용언 띄어쓰기: 국립국어원 기준 (보조용언은 띄어 씀을 원칙으로 하되, 경우에 따라 붙여 씀도 허용)',
+    custom: `보조용언 띄어쓰기: 커스텀 규칙 — ${custom || '별도 규칙 없음'}`
+  }[auxVerb];
+
+  const techText = techTerm === 'attached' ? '전문용어: 붙여쓰기 원칙' : '전문용어: 띄어쓰기 원칙';
+  const extras = [];
+  if (goRule) extras.push("'~고' 연결어미 뒤 용언 항상 띄어쓰기");
+  if (vvRule) extras.push('본용언+본용언 구성 항상 띄어쓰기');
+
+  return `당신은 한국어 출판 원고 교정교열 전문 편집자입니다.
+
+## 띄어쓰기 규칙
+- ${auxText}
+- ${techText}
+${extras.map(r => '- ' + r).join('\n')}
+
+## 교정 기준
+1. 맞춤법: 한글 맞춤법 규정에 따른 표기 교정
+2. 띄어쓰기: 위 규칙에 따른 정확한 적용
+3. 문장부호: 마침표·쉼표·따옴표·줄임표 등 올바른 사용
+4. 표준어: 비표준어 → 표준어로 교체
+5. 외래어: 국립국어원 외래어 표기법 준수
+6. 숫자·단위: 한글 수 표기 원칙 준수
+
+수정된 원고 전문만 반환하세요. 설명·주석·서두 없이 원고 텍스트만 출력하세요.`;
+}
+
+function promptYakul() {
+  const s = id => document.getElementById(id).value || '';
+  return `당신은 한국 출판 조판을 위한 약물기호 삽입 전문 편집자입니다.
+
+## 사용할 약물기호
+- 소제목 기호: ${s('symbolSubtitle')} (소제목 단락 앞에 삽입)
+- 인용문 기호: ${s('symbolQuote')} (인용문 단락 앞에 삽입)
+- 각주 기호: ${s('symbolFootnote')} (각주 참조 번호 앞에 삽입)
+- 미주 기호: ${s('symbolEndnote')} (미주 참조 위치에 삽입)
+- 역주 기호: ${s('symbolTranslator')} (역주·옮긴이 주 앞에 삽입)
+
+## 삽입 원칙
+1. 소제목으로 판단되는 단락 앞에 소제목 기호 삽입
+2. 직접 인용문 단락 앞에 인용문 기호 삽입
+3. 각주/미주 번호 위치에 해당 기호 삽입
+4. 역주(옮긴이 주) 앞에 역주 기호 삽입
+5. 기호 삽입 외 원고 내용을 변경하지 마세요
+
+기호가 삽입된 원고 전문만 반환하세요. 설명·주석·서두 없이 원고 텍스트만 출력하세요.`;
+}
+
+// ── Claude API ─────────────────────────────────────────────────────
+async function callClaude(apiKey, systemPrompt, userMessage, useWebSearch = false) {
+  const prompt = systemPrompt + '\n\n' + userMessage;
+  const res = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt })
+  });
+  if (!res.ok) throw new Error('서버 오류: ' + res.status);
+  const data = await res.json();
+  return (data.result || '').trim();
+}
+
+// ── Gemini API → 서버 경유 ──────────────────────────────────────────
+async function callGemini(apiKey, systemPrompt, userMessage) {
+  const prompt = systemPrompt + '\n\n' + userMessage;
+  const res = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt })
+  });
+  if (!res.ok) throw new Error('서버 오류: ' + res.status);
+  const data = await res.json();
+  return (data.result || '').trim();
+}
+
+// ── Progress Helpers ───────────────────────────────────────────────
+function createStepEl(label) {
+  const el = document.createElement('div');
+  el.className = 'progress-step pending';
+  el.innerHTML = `<span class="step-icon">⏳</span><span>${label}</span>`;
+  return el;
+}
+
+function setStep(el, state) {
+  el.className = 'progress-step ' + state;
+  const icons = { pending: '⏳', running: '', done: '✅', error: '❌' };
+  const iconEl = el.querySelector('.step-icon, .step-spinner');
+  if (state === 'running') {
+    const spinner = document.createElement('div');
+    spinner.className = 'step-spinner';
+    if (iconEl) el.replaceChild(spinner, iconEl);
+    else el.prepend(spinner);
+  } else {
+    const span = document.createElement('span');
+    span.className = 'step-icon';
+    span.textContent = icons[state];
+    if (iconEl) el.replaceChild(span, iconEl);
+    else el.prepend(span);
+  }
+}
+
+// ── Main Run ───────────────────────────────────────────────────────
+async function runProofreading() {
+  const text = manuscriptContent || document.getElementById('manuscriptText').value.trim();
+  if (!text) { alert('원고를 입력하거나 파일을 업로드해주세요.'); return; }
+
+  const sel = {
+    editor1: document.getElementById('editor1').checked,
+    editor2: document.getElementById('editor2').checked,
+    editor3: document.getElementById('editor3').checked,
+    yakul:   document.getElementById('yakul').checked
+  };
+  if (!Object.values(sel).some(Boolean)) { alert('편집자를 최소 1명 이상 선택해주세요.'); return; }
+
+  const ck = '';  // 서버에서 API 키 관리
+  const gk = '';  // 서버에서 API 키 관리
+
+  const runBtn = document.getElementById('runBtn');
+  runBtn.disabled = true;
+  runBtn.textContent = '처리 중...';
+
+  originalManuscript = text;
+  let current = text;
+
+  const steps = [
+    sel.editor1 && { id: 'editor1', label: '편집자 1 · 팩트체크', fn: t => callClaude(ck, promptEditor1(), `다음 원고를 팩트체크해 주세요:\n\n${t}`, true) },
+    sel.editor2 && { id: 'editor2', label: '편집자 2 · 윤문',     fn: t => callGemini(gk, promptEditor2(), `다음 원고를 윤문해 주세요:\n\n${t}`) },
+    sel.editor3 && { id: 'editor3', label: '편집자 3 · 교정교열', fn: t => callClaude(ck, promptEditor3(), `다음 원고를 교정교열해 주세요:\n\n${t}`) },
+    sel.yakul   && { id: 'yakul',   label: '약물기호 삽입',       fn: t => callClaude(ck, promptYakul(),   `다음 원고에 약물기호를 삽입해 주세요:\n\n${t}`) }
+  ].filter(Boolean);
+
+  const progressSection = document.getElementById('progressSection');
+  const progressSteps   = document.getElementById('progressSteps');
+  progressSection.classList.remove('hidden');
+  document.getElementById('resultsSection').classList.add('hidden');
+  progressSteps.innerHTML = '';
+
+  const stepEls = steps.map(s => {
+    const el = createStepEl(s.label);
+    progressSteps.appendChild(el);
+    return el;
+  });
+
+  let hadError = false;
+
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i];
+    const el   = stepEls[i];
+    setStep(el, 'running');
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    try {
+      let result = await step.fn(current);
+      if (!result) throw new Error('API 응답이 비어있습니다');
+      // Strip markdown fences if present
+      result = result.replace(/^```[^\n]*\n?/gm, '').replace(/```\s*$/gm, '').trim();
+      current = result;
+      setStep(el, 'done');
+    } catch (err) {
+      console.error(step.label, err);
+      setStep(el, 'error');
+      const errEl = document.createElement('div');
+      errEl.className = 'error-msg';
+      errEl.textContent = '오류: ' + err.message;
+      el.after(errEl);
+      hadError = true;
+      break;
+    }
+  }
+
+  if (current !== text || !hadError) {
+    finalCorrectedText = current;
+    const { origHtml, corrHtml } = renderDiff(originalManuscript, finalCorrectedText);
+    document.getElementById('originalText').innerHTML  = origHtml;
+    document.getElementById('correctedText').innerHTML = corrHtml;
+    document.getElementById('resultsSection').classList.remove('hidden');
+    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  runBtn.disabled = false;
+  runBtn.textContent = '교정교열 시작';
+}
+
+// ── Diff Engine ────────────────────────────────────────────────────
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// LCS-based sequence diff — returns [{type:'equal'|'delete'|'insert', val}]
+function seqDiff(a, b) {
+  const m = a.length, n = b.length;
+  if (m === 0 && n === 0) return [];
+
+  // Skip common prefix/suffix for speed
+  let lo = 0;
+  while (lo < m && lo < n && a[lo] === b[lo]) lo++;
+  let hi_a = m, hi_b = n;
+  while (hi_a > lo && hi_b > lo && a[hi_a-1] === b[hi_b-1]) { hi_a--; hi_b--; }
+
+  const prefix = a.slice(0, lo).map(v => ({type:'equal', val:v}));
+  const suffix = a.slice(hi_a).map(v => ({type:'equal', val:v}));
+
+  const as = a.slice(lo, hi_a), bs = b.slice(lo, hi_b);
+  const ma = as.length, nb = bs.length;
+  const middle = [];
+
+  if (ma === 0) {
+    bs.forEach(v => middle.push({type:'insert', val:v}));
+  } else if (nb === 0) {
+    as.forEach(v => middle.push({type:'delete', val:v}));
+  } else if (ma * nb > 800000) {
+    // Too large: just mark all as replaced
+    as.forEach(v => middle.push({type:'delete', val:v}));
+    bs.forEach(v => middle.push({type:'insert', val:v}));
+  } else {
+    const dp = Array.from({length: ma+1}, () => new Int32Array(nb+1));
+    for (let i = 1; i <= ma; i++)
+      for (let j = 1; j <= nb; j++)
+        dp[i][j] = as[i-1] === bs[j-1] ? dp[i-1][j-1]+1 : Math.max(dp[i-1][j], dp[i][j-1]);
+    let i = ma, j = nb;
+    const ops = [];
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && as[i-1] === bs[j-1]) {
+        ops.unshift({type:'equal',  val:as[i-1]}); i--; j--;
+      } else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) {
+        ops.unshift({type:'insert', val:bs[j-1]}); j--;
+      } else {
+        ops.unshift({type:'delete', val:as[i-1]}); i--;
+      }
+    }
+    ops.forEach(o => middle.push(o));
+  }
+
+  return [...prefix, ...middle, ...suffix];
+}
+
+// Tokenize a line into word-level tokens for inline diff
+function tokenizeLine(line) {
+  return line.match(/[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9]+|[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9]/g) || [''];
+}
+
+// Inline word-level diff for a changed line pair
+function inlineDiff(oldLine, newLine) {
+  const ot = tokenizeLine(oldLine), nt = tokenizeLine(newLine);
+  const ops = seqDiff(ot, nt);
+  let delHtml = '', insHtml = '';
+  for (const op of ops) {
+    const v = escHtml(op.val);
+    if (op.type === 'equal')  { delHtml += v; insHtml += v; }
+    else if (op.type === 'delete') delHtml += `<mark class="diff-del">${v}</mark>`;
+    else                           insHtml += `<mark class="diff-ins">${v}</mark>`;
+  }
+  return { delHtml, insHtml };
+}
+
+// Main diff renderer — compares old/new text line by line
+function renderDiff(oldText, newText) {
+  if (oldText === newText) {
+    const plain = escHtml(oldText);
+    return { origHtml: plain, corrHtml: plain };
+  }
+
+  const oldLines = oldText.split('\n');
+  const newLines = newText.split('\n');
+
+  // If line count is huge, skip diff to avoid hang
+  if (oldLines.length + newLines.length > 6000) {
+    return { origHtml: escHtml(oldText), corrHtml: escHtml(newText) };
+  }
+
+  const ops = seqDiff(oldLines, newLines);
+  const origParts = [], corrParts = [];
+
+  for (let i = 0; i < ops.length; i++) {
+    const op = ops[i];
+    if (op.type === 'equal') {
+      const v = escHtml(op.val);
+      origParts.push(v);
+      corrParts.push(v);
+    } else if (op.type === 'delete' && i+1 < ops.length && ops[i+1].type === 'insert') {
+      // Adjacent delete+insert → inline word diff
+      const { delHtml, insHtml } = inlineDiff(op.val, ops[i+1].val);
+      origParts.push(delHtml);
+      corrParts.push(insHtml);
+      i++;
+    } else if (op.type === 'delete') {
+      origParts.push(`<mark class="diff-del">${escHtml(op.val)}</mark>`);
+      corrParts.push('');
+    } else {
+      origParts.push('');
+      corrParts.push(`<mark class="diff-ins">${escHtml(op.val)}</mark>`);
+    }
+  }
+
+  return {
+    origHtml: origParts.join('\n'),
+    corrHtml: corrParts.join('\n')
+  };
+}
+
+// ── Export ─────────────────────────────────────────────────────────
+function copyResult() {
+  if (!finalCorrectedText) { alert('복사할 내용이 없습니다.'); return; }
+  navigator.clipboard.writeText(finalCorrectedText)
+    .then(() => alert('클립보드에 복사되었습니다.'))
+    .catch(() => {
+      const ta = Object.assign(document.createElement('textarea'), { value: finalCorrectedText });
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      alert('클립보드에 복사되었습니다.');
+    });
+}
+
+async function downloadDocx() {
+  if (!finalCorrectedText) { alert('다운로드할 내용이 없습니다.'); return; }
+  if (typeof docx === 'undefined') { alert('docx.js 라이브러리를 불러오는 중입니다. 잠시 후 다시 시도해주세요.'); return; }
+  try {
+    const { Document, Packer, Paragraph, TextRun } = docx;
+    const paragraphs = finalCorrectedText.split('\n').map(line =>
+      new Paragraph({ children: [new TextRun({ text: line || ' ', font: 'Malgun Gothic', size: 24 })] })
+    );
+    const doc = new Document({ sections: [{ properties: {}, children: paragraphs }] });
+    const blob = await Packer.toBlob(doc);
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), { href: url, download: '교정교열_결과.docx' });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('DOCX 생성 오류: ' + err.message);
+  }
+}
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/diff_match_patch/20121119/diff_match_patch.js"></script>
+<script>
+/* ══════════════════════════════════
+   교정교열 JS (gyo_ 네임스페이스)
+══════════════════════════════════ */
+let gyo_content = '';
+let gyo_original = '';
+let gyo_result = '';
+
+function gyo_switchInputTab(tab) {
+  document.querySelectorAll('#panel-1 .gyo-tab').forEach((b,i) => b.classList.toggle('active', (tab==='upload')===(i===0)));
+  document.getElementById('gyo_uploadTab').classList.toggle('active', tab==='upload');
+  document.getElementById('gyo_textTab').classList.toggle('active', tab==='text');
+}
+
+function gyo_handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('gyo_dropZone').classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) gyo_handleFile(e.dataTransfer.files[0]);
+}
+
+async function gyo_handleFile(file) {
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  document.getElementById('gyo_fname').style.display = 'block';
+  document.getElementById('gyo_fname').textContent = '읽는 중...';
+  try {
+    if (ext === 'pdf') {
+      const arr = new Uint8Array(await file.arrayBuffer());
+      const pdf = await pdfjsLib.getDocument({data: arr}).promise;
+      let txt = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const ct = await page.getTextContent();
+        txt += ct.items.map(it => it.str).join(' ') + '\n';
+      }
+      gyo_content = txt.trim();
+    } else if (ext === 'docx') {
+      const result = await mammoth.extractRawText({arrayBuffer: await file.arrayBuffer()});
+      gyo_content = result.value.trim();
+    }
+    document.getElementById('gyo_fname').textContent = `✓ ${file.name}  (${gyo_content.length.toLocaleString()}자)`;
+  } catch (err) {
+    document.getElementById('gyo_fname').textContent = '파일 읽기 실패: ' + err.message;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('gyo_manuscriptText');
+  if (ta) ta.addEventListener('input', () => {
+    document.getElementById('gyo_charCount').textContent = ta.value.length.toLocaleString() + '자';
+  });
+});
+
+function gyo_toggleEditor(id) {
+  const cb = document.getElementById('gyo_' + id);
+  cb.checked = !cb.checked;
+  document.getElementById('gyo_card-' + id).classList.toggle('selected', cb.checked);
+  document.getElementById('gyo_editor2Settings').style.display = document.getElementById('gyo_editor2').checked ? 'block' : 'none';
+  document.getElementById('gyo_editor3Settings').style.display = document.getElementById('gyo_editor3').checked ? 'block' : 'none';
+  document.getElementById('gyo_yakulSettings').style.display = document.getElementById('gyo_yakul').checked ? 'block' : 'none';
+}
+
+function gyo_toggleCustomAux() {}
+
+async function gyo_callAPI(prompt) {
+  const res = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({prompt})
+  });
+  if (!res.ok) throw new Error('서버 오류: ' + res.status);
+  const data = await res.json();
+  return (data.result || '').trim();
+}
+
+function gyo_promptEditor1() {
+  return `당신은 출판 원고 팩트체크 전문 편집자입니다. 원고의 사실 관계(날짜, 인명, 지명, 수치, 인용구 등)를 확인하고 오류를 수정하세요. 수정된 원고 전문만 출력하세요.`;
+}
+function gyo_promptEditor2(mode) {
+  const modes = {
+    simple: '명백한 오류만 최소한으로 수정하고 원문 문체를 최대한 보존하세요.',
+    proofread: '맞춤법과 어휘를 교열하되 문장 구조는 보존하세요.',
+    polish: '문장의 흐름, 어휘, 구조를 전면적으로 개선하세요.'
+  };
+  return `당신은 출판 원고 윤문 전문 편집자입니다. ${modes[mode]||modes.simple} 수정된 원고 전문만 출력하세요.`;
+}
+function gyo_promptEditor3() {
+  const rule = document.getElementById('gyo_auxVerbRule')?.value || 'standard';
+  const rules = {
+    standard: '보조동사는 원칙적으로 붙여 쓰되 허용 범위 내에서 띄어 쓸 수 있습니다.',
+    space: '보조동사는 띄어 씁니다.',
+    attach: '보조동사는 붙여 씁니다.'
+  };
+  return `당신은 출판 원고 교정교열 전문 편집자입니다. 맞춤법, 띄어쓰기, 문장부호를 교정하세요. ${rules[rule]} 교정된 원고 전문만 출력하세요.`;
+}
+function gyo_promptYakul() {
+  const hl = document.getElementById('gyo_hl')?.value || '%';
+  const qt = document.getElementById('gyo_qt')?.value || '@';
+  const fn = document.getElementById('gyo_fn')?.value || '⟨⟩';
+  return `당신은 출판 원고에 약물기호를 삽입하는 전문 도구입니다. 소제목: ${hl}, 인용문: ${qt}, 각주/미주/역주: ${fn} 기호를 삽입하세요. 기호가 삽입된 원고 전문만 출력하세요.`;
+}
+
+function gyo_createStep(label) {
+  const el = document.createElement('div');
+  el.className = 'gyo-step pending';
+  el.innerHTML = `<span class="gyo-step-icon">⏳</span><span>${label}</span>`;
+  return el;
+}
+function gyo_setStep(el, state) {
+  el.className = 'gyo-step ' + state;
+  const icons = {pending:'⏳', running:'', done:'✅', error:'❌'};
+  const iconEl = el.querySelector('.gyo-step-icon, .gyo-spinner');
+  if (state === 'running') {
+    const sp = document.createElement('div'); sp.className = 'gyo-spinner';
+    if (iconEl) el.replaceChild(sp, iconEl); else el.prepend(sp);
+  } else {
+    const ic = document.createElement('span'); ic.className = 'gyo-step-icon'; ic.textContent = icons[state]||'⏳';
+    if (iconEl) el.replaceChild(ic, iconEl); else el.prepend(ic);
+  }
+}
+
+async function gyo_run() {
+  const text = gyo_content || document.getElementById('gyo_manuscriptText')?.value.trim();
+  if (!text) { alert('원고를 입력하거나 파일을 업로드해주세요.'); return; }
+  const sel = {
+    editor1: document.getElementById('gyo_editor1').checked,
+    editor2: document.getElementById('gyo_editor2').checked,
+    editor3: document.getElementById('gyo_editor3').checked,
+    yakul:   document.getElementById('gyo_yakul').checked
+  };
+  if (!Object.values(sel).some(Boolean)) { alert('편집자를 최소 1명 이상 선택해주세요.'); return; }
+
+  const mode2 = document.querySelector('input[name="gyo_editor2Mode"]:checked')?.value || 'simple';
+  const steps = [
+    sel.editor1 && {label: '편집자 1 · 팩트체크', fn: t => gyo_callAPI(gyo_promptEditor1() + '\n\n' + t)},
+    sel.editor2 && {label: '편집자 2 · 윤문',     fn: t => gyo_callAPI(gyo_promptEditor2(mode2) + '\n\n' + t)},
+    sel.editor3 && {label: '편집자 3 · 교정교열', fn: t => gyo_callAPI(gyo_promptEditor3() + '\n\n' + t)},
+    sel.yakul   && {label: '약물기호 삽입',        fn: t => gyo_callAPI(gyo_promptYakul() + '\n\n' + t)},
+  ].filter(Boolean);
+
+  document.getElementById('gyo_runBtn').disabled = true;
+  document.getElementById('gyo_progress').style.display = 'block';
+  document.getElementById('gyo_results').style.display = 'none';
+  document.getElementById('gyo_empty').style.display = 'none';
+  document.getElementById('gyo_err').style.display = 'none';
+  document.getElementById('gyo_steps').innerHTML = '';
+
+  gyo_original = text;
+  let current = text;
+
+  const stepEls = steps.map(s => {
+    const el = gyo_createStep(s.label);
+    document.getElementById('gyo_steps').appendChild(el);
+    return el;
+  });
+
+  for (let i = 0; i < steps.length; i++) {
+    gyo_setStep(stepEls[i], 'running');
+    try {
+      let result = await steps[i].fn(current);
+      if (!result) throw new Error('응답이 비어있습니다');
+      result = result.replace(/^```[^\n]*\n?/gm, '').replace(/```\s*$/gm, '').trim();
+      current = result;
+      gyo_setStep(stepEls[i], 'done');
+    } catch (err) {
+      gyo_setStep(stepEls[i], 'error');
+      document.getElementById('gyo_err').style.display = 'block';
+      document.getElementById('gyo_err').textContent = '오류: ' + err.message;
+      break;
+    }
+  }
+
+  gyo_result = current;
+  gyo_renderResults();
+  document.getElementById('gyo_runBtn').disabled = false;
+}
+
+function gyo_renderResults() {
+  let lH = '', rH = '';
+  if (typeof diff_match_patch !== 'undefined') {
+    const dmp = new diff_match_patch();
+    const diffs = dmp.diff_main(gyo_original, gyo_result);
+    dmp.diff_cleanupSemantic(diffs);
+    for (const [op, txt] of diffs) {
+      const e = gyo_esc(txt);
+      if (op === 0) { lH += e; rH += e; }
+      else if (op === -1) lH += `<mark class="del">${e}</mark>`;
+      else rH += `<mark class="ins">${e}</mark>`;
+    }
+  } else { lH = gyo_esc(gyo_original); rH = gyo_esc(gyo_result); }
+  document.getElementById('gyo_dL').innerHTML = lH;
+  document.getElementById('gyo_dR').innerHTML = rH;
+  document.getElementById('gyo_cleanOut').textContent = gyo_result;
+  document.getElementById('gyo_results').style.display = 'block';
+  document.getElementById('gyo_results').scrollIntoView({behavior:'smooth'});
+}
+
+function gyo_resultTab(name) {
+  document.querySelectorAll('.gyo-result-tab').forEach((b,i) => b.classList.toggle('active', (name==='diff')===(i===0)));
+  document.getElementById('gyo_pDiff').classList.toggle('active', name==='diff');
+  document.getElementById('gyo_pClean').classList.toggle('active', name==='clean');
+}
+
+async function gyo_copy() {
+  try { await navigator.clipboard.writeText(gyo_result); showToast('복사됐어요!'); }
+  catch { alert('복사 실패.'); }
+}
+
+function gyo_download() {
+  const blob = new Blob([gyo_result], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `교정교열_결과_${new Date().toISOString().slice(0,10)}.txt`;
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function gyo_esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
